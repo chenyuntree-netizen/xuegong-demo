@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智慧学工 · 手机端演示 v1</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,'PingFang SC','Helvetica Neue',sans-serif;background:#EDF2FB;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+
+/* ── 顶部控制栏 ── */
+.top-bar{width:100%;max-width:1100px;background:#fff;border-bottom:1px solid #e0e8f5;padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(24,144,255,.08);}
+.top-bar h1{font-size:15px;font-weight:700;color:#1677FF;margin-right:8px;}
+.role-tab{padding:5px 16px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid #D0E4FF;color:#4A90D9;transition:.2s;user-select:none;background:#F0F7FF;}
+.role-tab.active{background:linear-gradient(135deg,#1677FF,#0958D9);border-color:#1677FF;color:#fff;box-shadow:0 2px 8px rgba(22,119,255,.3);}
+.page-tab{padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid #D0E4FF;color:#4A90D9;transition:.15s;user-select:none;margin-left:4px;background:#F0F7FF;}
+.page-tab.active{background:#E6F0FF;border-color:#1677FF;color:#1677FF;}
+.sep{color:#c8d8f0;font-size:12px;}
+
+/* ── 手机框 ── */
+.stage{padding:24px;display:flex;gap:36px;justify-content:center;align-items:flex-start;flex-wrap:wrap;}
+.phone-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.phone-label{font-size:11px;color:#7BA8D4;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+.phone{width:360px;min-height:680px;background:#F0F6FF;border-radius:40px;border:8px solid #1a1a2e;box-shadow:0 20px 60px rgba(22,119,255,.18),0 4px 12px rgba(0,0,0,.2),inset 0 0 0 1px rgba(255,255,255,.1);overflow:hidden;position:relative;display:flex;flex-direction:column;}
+.phone-notch{height:30px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.phone-notch-pill{width:96px;height:12px;background:#0d0d1a;border-radius:8px;}
+.phone-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.phone-body::-webkit-scrollbar{display:none;}
+
+/* ── 状态栏 ── */
+.status-bar{padding:6px 16px 0;display:flex;justify-content:space-between;font-size:10px;font-weight:600;flex-shrink:0;}
+.status-bar.light{color:#fff;}
+.status-bar.dark{color:#1a1a2e;}
+
+/* ── 通用屏幕 ── */
+.screen{display:none;flex-direction:column;flex:1;}
+.screen.active{display:flex;}
+
+/* ── 页面顶部蓝色横幅 ── */
+.s-header{background:linear-gradient(135deg,#1677FF 0%,#0958D9 60%,#003EB3 100%);padding:0 0 20px;color:#fff;flex-shrink:0;position:relative;overflow:hidden;}
+.s-header::after{content:'';position:absolute;right:-30px;top:-30px;width:140px;height:140px;background:rgba(255,255,255,.06);border-radius:50%;pointer-events:none;}
+.s-header::before{content:'';position:absolute;right:40px;bottom:-40px;width:100px;height:100px;background:rgba(255,255,255,.04);border-radius:50%;pointer-events:none;}
+.s-header-inner{padding:14px 16px 0;position:relative;z-index:1;}
+.s-header h2{font-size:17px;font-weight:700;margin-bottom:2px;letter-spacing:.2px;}
+.s-header p{font-size:11px;opacity:.75;}
+.s-header-nav{display:flex;align-items:center;gap:8px;padding:14px 16px 0;position:relative;z-index:1;}
+.s-header-nav .nav-back{font-size:20px;cursor:pointer;padding:2px;line-height:1;opacity:.9;}
+.s-header-nav h2{font-size:16px;font-weight:700;}
+.s-header-nav p{font-size:11px;opacity:.75;margin-top:1px;}
+
+/* ── 圆弧过渡卡片 ── */
+.s-content{flex:1;padding:12px 12px 8px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-top:-12px;background:#F0F6FF;border-radius:16px 16px 0 0;position:relative;z-index:2;}
+.s-content::-webkit-scrollbar{display:none;}
+.s-content-flat{flex:1;padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;background:#F0F6FF;}
+.s-content-flat::-webkit-scrollbar{display:none;}
+
+/* ── 首页 KPI 统计区（嵌在 header 内） ── */
+.header-kpi{display:flex;gap:8px;margin:14px 16px 0;position:relative;z-index:1;}
+.kpi-card{flex:1;background:rgba(255,255,255,.18);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.22);border-radius:12px;padding:10px 8px;text-align:center;}
+.kpi-num{font-size:22px;font-weight:800;color:#fff;line-height:1.1;}
+.kpi-label{font-size:10px;color:rgba(255,255,255,.75);margin-top:3px;}
+
+/* ── 宫格快捷入口 ── */
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 16px 0;position:relative;z-index:1;}
+.quick-item{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:10px 4px 8px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.18);border-radius:12px;transition:.2s;}
+.quick-item:active{transform:scale(.95);}
+.quick-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.quick-label{font-size:10px;color:rgba(255,255,255,.9);font-weight:500;}
+
+/* ── 白卡 ── */
+.card{background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 12px rgba(22,119,255,.08),0 1px 3px rgba(0,0,0,.04);}
+.card-title{font-size:13px;font-weight:700;color:#0A1F44;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.card-title .ct-icon{width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.card-title .badge{font-size:10px;background:#FF4D4F;color:#fff;border-radius:8px;padding:1px 7px;font-weight:500;margin-left:auto;}
+.card-title .badge-blue{font-size:10px;background:#E6F0FF;color:#1677FF;border-radius:8px;padding:1px 7px;font-weight:500;margin-left:auto;}
+
+/* ── 待办卡片横幅 ── */
+.todo-banner{background:linear-gradient(135deg,#E8F3FF,#D4E9FF);border:1px solid #BAD7FF;border-radius:10px;padding:10px 12px;display:flex;align-items:flex-start;gap:9px;cursor:pointer;}
+.todo-banner .t-icon{width:28px;height:28px;background:linear-gradient(135deg,#1677FF,#0958D9);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.todo-banner .t-body{flex:1;}
+.todo-banner .t-title{font-size:12px;font-weight:700;color:#0A2E6E;margin-bottom:2px;}
+.todo-banner .t-sub{font-size:11px;color:#4A78B8;line-height:1.5;}
+.todo-banner .t-arrow{font-size:14px;color:#1677FF;align-self:center;}
+.todo-warn{background:linear-gradient(135deg,#FFF7E6,#FFEFD0);border:1px solid #FFD591;}
+.todo-warn .t-icon{background:linear-gradient(135deg,#FA8C16,#D46B08);}
+.todo-warn .t-title{color:#613400;}
+.todo-warn .t-sub{color:#873800;}
+.todo-warn .t-arrow{color:#FA8C16;}
+
+/* ── 统计行 ── */
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stat-card{background:linear-gradient(135deg,#F0F7FF,#E6F0FF);border:1px solid #D0E4FF;border-radius:12px;padding:12px 10px;text-align:center;}
+.stat-num{font-size:24px;font-weight:800;color:#1677FF;line-height:1;}
+.stat-label{font-size:11px;color:#5B8DB8;margin-top:4px;}
+
+/* ── 列表项 ── */
+.list-item{background:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 1px 6px rgba(22,119,255,.07);cursor:pointer;transition:.18s;border:1px solid #EAF2FF;}
+.list-item:hover,.list-item:active{background:#F5F9FF;transform:translateY(-1px);}
+.list-title{font-size:13px;font-weight:700;color:#0A1F44;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.list-meta{font-size:11px;color:#7AA3C8;line-height:1.6;}
+.list-actions{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid #EAF2FF;}
+
+/* ── 段落分区标题 ── */
+.section-title{font-size:11px;font-weight:700;color:#7AA3C8;letter-spacing:.8px;text-transform:uppercase;padding:4px 2px 6px;display:flex;align-items:center;gap:6px;}
+.section-title::after{content:'';flex:1;height:1px;background:#D8EAFF;}
+
+/* ── 标签 ── */
+.tag{display:inline-flex;align-items:center;border-radius:20px;padding:2px 9px;font-size:11px;font-weight:600;}
+.tag-green{background:#F0FAE8;color:#389E0D;border:1px solid #B7EB8F;}
+.tag-orange{background:#FFF7E6;color:#D46B08;border:1px solid #FFD591;}
+.tag-red{background:#FFF1F0;color:#CF1322;border:1px solid #FFA39E;}
+.tag-blue{background:#E6F0FF;color:#1677FF;border:1px solid #91CAFF;}
+.tag-gray{background:#F5F7FA;color:#6B7A99;border:1px solid #D6E0EE;}
+.tag-purple{background:#F4EEFF;color:#531DAB;border:1px solid #D3ADF7;}
+
+/* ── 表单 ── */
+.form-row{margin-bottom:12px;}
+.form-row label{font-size:12px;color:#4A6A8A;display:block;margin-bottom:5px;font-weight:500;}
+.form-input{width:100%;border:1.5px solid #D0E4FF;border-radius:10px;padding:9px 12px;font-size:13px;outline:none;color:#0A1F44;background:#F8FBFF;transition:.2s;}
+.form-input:focus{border-color:#1677FF;background:#fff;box-shadow:0 0 0 3px rgba(22,119,255,.12);}
+.form-select{appearance:none;background:#F8FBFF url("data:image/svg+xml,%3Csvg width='10' height='6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%231677FF' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 12px center;}
+
+/* ── 按钮 ── */
+.btn-primary{background:linear-gradient(135deg,#1677FF,#0958D9);color:#fff;border:none;border-radius:10px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:4px;transition:.2s;box-shadow:0 4px 12px rgba(22,119,255,.35);}
+.btn-primary:hover{box-shadow:0 6px 16px rgba(22,119,255,.45);transform:translateY(-1px);}
+.btn-danger{background:linear-gradient(135deg,#FF4D4F,#CF1322);color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;box-shadow:0 2px 8px rgba(255,77,79,.3);}
+.btn-success{background:linear-gradient(135deg,#52C41A,#389E0D);color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(82,196,26,.3);}
+.btn-default{background:#fff;color:#1677FF;border:1.5px solid #D0E4FF;border-radius:10px;padding:8px 16px;font-size:13px;cursor:pointer;font-weight:500;transition:.15s;}
+.btn-default:hover{background:#F0F7FF;}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.btn-outline{background:transparent;color:#1677FF;border:1.5px solid #91CAFF;border-radius:10px;padding:8px 16px;font-size:13px;cursor:pointer;}
+
+/* ── 消息通知 ── */
+.msg-item{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid #EAF2FF;}
+.msg-item:last-child{border-bottom:none;}
+.msg-icon-wrap{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.msg-title{font-size:13px;font-weight:700;color:#0A1F44;margin-bottom:3px;}
+.msg-content{font-size:11px;color:#5B8DB8;line-height:1.5;}
+.msg-time{font-size:10px;color:#9BB8D4;margin-top:3px;}
+.msg-unread-dot{width:7px;height:7px;background:#FF4D4F;border-radius:50%;flex-shrink:0;margin-top:5px;}
+
+/* ── 底部导航 ── */
+.tab-bar{background:#fff;border-top:1px solid #E8F0FD;display:flex;flex-shrink:0;height:58px;box-shadow:0 -4px 12px rgba(22,119,255,.07);}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:#9BB8D4;font-size:10px;font-weight:500;transition:.15s;position:relative;}
+.tab-item.active{color:#1677FF;}
+.tab-item.active .tab-icon-wrap{background:#E6F0FF;color:#1677FF;}
+.tab-icon-wrap{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;transition:.2s;}
+.tab-badge{position:absolute;top:5px;right:calc(50% - 22px);background:#FF4D4F;color:#fff;border-radius:10px;padding:0 5px;font-size:9px;min-width:16px;text-align:center;font-weight:700;}
+
+/* ── 步骤时间轴 ── */
+.step-list{display:flex;flex-direction:column;gap:0;}
+.step-row{display:flex;gap:10px;padding-bottom:4px;}
+.step-dot-col{display:flex;flex-direction:column;align-items:center;width:24px;flex-shrink:0;}
+.step-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;}
+.step-line{width:2px;flex:1;background:linear-gradient(#D0E4FF,#EAF2FF);margin:3px 0;min-height:14px;border-radius:1px;}
+.step-dot.done{background:linear-gradient(135deg,#52C41A,#389E0D);}
+.step-dot.active{background:linear-gradient(135deg,#1677FF,#0958D9);box-shadow:0 2px 8px rgba(22,119,255,.4);}
+.step-dot.pending{background:#D0E4FF;color:#7AA3C8;}
+.step-text{flex:1;padding-top:2px;padding-bottom:12px;}
+.step-title{font-size:12px;font-weight:700;color:#0A1F44;}
+.step-sub{font-size:11px;color:#7AA3C8;margin-top:2px;}
+
+/* ── 个人档案 ── */
+.profile-header{background:linear-gradient(135deg,#1677FF 0%,#0958D9 60%,#003EB3 100%);padding:24px 16px 32px;color:#fff;text-align:center;position:relative;overflow:hidden;}
+.profile-header::after{content:'';position:absolute;right:-20px;top:-20px;width:120px;height:120px;background:rgba(255,255,255,.07);border-radius:50%;}
+.profile-header::before{content:'';position:absolute;left:-30px;bottom:-30px;width:100px;height:100px;background:rgba(255,255,255,.05);border-radius:50%;}
+.avatar{width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 12px;position:relative;z-index:1;}
+.profile-name{font-size:18px;font-weight:800;position:relative;z-index:1;}
+.profile-sub{font-size:12px;opacity:.8;margin-top:4px;position:relative;z-index:1;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:-16px;padding:0 12px;position:relative;z-index:10;}
+.info-cell{background:#fff;border-radius:12px;padding:12px;text-align:center;box-shadow:0 4px 12px rgba(22,119,255,.12);}
+.info-cell .v{font-size:15px;font-weight:800;color:#1677FF;}
+.info-cell .l{font-size:11px;color:#7AA3C8;margin-top:3px;}
+
+/* ── 弹窗 ── */
+.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,31,68,.45);backdrop-filter:blur(3px);z-index:100;align-items:flex-end;}
+.overlay.show{display:flex;}
+.sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:360px;margin:0 auto;padding:20px;max-height:82vh;overflow-y:auto;}
+.sheet-handle{width:40px;height:4px;background:#D0E4FF;border-radius:2px;margin:0 auto 18px;}
+.sheet h3{font-size:15px;font-weight:800;color:#0A1F44;margin-bottom:16px;}
+
+/* ── 成功状态 ── */
+.success-state{display:flex;flex-direction:column;align-items:center;padding:36px 16px;text-align:center;}
+.success-icon-ring{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#E8F5E9,#C8E6C9);display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:18px;box-shadow:0 4px 20px rgba(82,196,26,.2);}
+.success-state h3{font-size:17px;font-weight:800;color:#0A1F44;margin-bottom:8px;}
+.success-state p{font-size:13px;color:#5B8DB8;line-height:1.7;}
+
+/* ── 预警横幅 ── */
+.alert-banner{background:#FFF8EE;border:1px solid #FFD17A;border-radius:10px;padding:10px 12px;display:flex;align-items:flex-start;gap:9px;}
+.alert-banner .icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.alert-banner .text{font-size:12px;color:#614700;line-height:1.5;}
+.alert-banner .text strong{color:#D46B08;}
+
+/* ── 辅导员 header 绿色 ── */
+.cnl-header{background:linear-gradient(135deg,#0D7B3E 0%,#0A6132 60%,#074A26 100%) !important;}
+
+/* ── 辅导员班级切换器 ── */
+.class-switcher{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 12px;cursor:pointer;margin-top:10px;align-self:flex-start;}
+.class-switcher span{font-size:12px;font-weight:600;}
+
+/* ── 班级宫格卡 ── */
+.class-grid-card{border-radius:14px;padding:14px;color:#fff;position:relative;overflow:hidden;cursor:pointer;}
+.class-grid-card::after{content:'';position:absolute;right:-16px;bottom:-16px;width:70px;height:70px;background:rgba(255,255,255,.1);border-radius:50%;}
+
+/* ── 数字徽章 ── */
+.num-badge{display:inline-flex;align-items:center;justify-content:center;background:#FF4D4F;color:#fff;border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;min-width:20px;}
+.num-badge-blue{background:#E6F0FF;color:#1677FF;}
+.num-badge-green{background:#F0FAE8;color:#389E0D;}
+.num-badge-orange{background:#FFF7E6;color:#D46B08;}
+
+/* ── 进度条 ── */
+.progress-bar{height:6px;background:#E6F0FF;border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#1677FF,#40A0FF);}
+
+/* ── 分割线 ── */
+.divider{height:1px;background:#EAF2FF;margin:4px 0;}
+
+/* ── 动画 ── */
+@keyframes fadeSlideUp{from{transform:translateY(16px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.screen.active{animation:fadeSlideUp .25s ease;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.6;}}
+.pulsing{animation:pulse 2s infinite;}
+</style>
+</head>
+<body>
+
+<!-- 顶部控制栏 -->
+<div class="top-bar">
+  <h1>📱 学工手机端演示</h1>
+  <span class="sep">|</span>
+  <span style="font-size:12px;color:#909399">角色：</span>
+  <div class="role-tab active" id="roleTabStu" onclick="switchRole('student')">👨‍🎓 学生端</div>
+  <div class="role-tab" id="roleTabCnl" onclick="switchRole('counselor')">👩‍🏫 辅导员端</div>
+  <span class="sep">|</span>
+  <span style="font-size:12px;color:#909399" id="roleHint">张三 · 计应2201 · 2022001</span>
+</div>
+
+<!-- 演示区 -->
+<div class="stage">
+
+<!-- ══════════════════════════════════════════
+     学 生 端 手 机
+══════════════════════════════════════════ -->
+<div class="phone-wrap" id="phoneStu">
+  <div class="phone-label">学生端 · 张三</div>
+  <div class="phone">
+    <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+    <div class="phone-body" id="stuPhoneBody">
+
+      <!-- ── 状态栏 ── -->
+      <div class="status-bar light">
+        <span>9:41</span>
+        <span>📶 🔋</span>
+      </div>
+
+      <!-- ══ S1: 学生首页 ══ -->
+      <div class="screen active" id="stu-home">
+        <!-- 蓝色 Header 区（仅保留问候语 + KPI）-->
+        <div class="s-header" style="padding-bottom:28px">
+          <div class="s-header-inner" style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-size:11px;opacity:.7;margin-bottom:4px">欢迎回来</div>
+              <div style="font-size:19px;font-weight:800;letter-spacing:.3px">张三 👋</div>
+              <div style="font-size:11px;opacity:.75;margin-top:3px">计应2201 · 2022001</div>
+            </div>
+            <div style="position:relative;cursor:pointer;background:rgba(255,255,255,.18);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px" onclick="stuGo('stu-msg')">
+              🔔<span style="position:absolute;top:-3px;right:-3px;background:#FF4D4F;color:#fff;border-radius:8px;padding:0 4px;font-size:9px;font-weight:700">3</span>
+            </div>
+          </div>
+          <!-- KPI 数字区 -->
+          <div class="header-kpi">
+            <div class="kpi-card"><div class="kpi-num">86.5</div><div class="kpi-label">课程均分</div></div>
+            <div class="kpi-card"><div class="kpi-num">2</div><div class="kpi-label">进行中</div></div>
+          </div>
+        </div>
+
+        <!-- 内容区（白色圆角悬浮，紧贴 header）-->
+        <div class="s-content">
+
+          <!-- 4宫格快捷入口（仅保留有功能的入口）-->
+          <div class="card" style="padding:14px 10px 10px">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+              <div onclick="stuGo('stu-leave-form')" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:8px 4px;border-radius:12px;transition:.15s" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background='transparent'">
+                <div style="width:42px;height:42px;border-radius:12px;background:#E6F0FF;display:flex;align-items:center;justify-content:center;font-size:20px">📅</div>
+                <div style="font-size:11px;color:#3A5A8A;font-weight:600">请假</div>
+              </div>
+              <div onclick="stuGo('stu-leave-list')" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:8px 4px;border-radius:12px;transition:.15s" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background='transparent'">
+                <div style="width:42px;height:42px;border-radius:12px;background:#F6FFED;display:flex;align-items:center;justify-content:center;font-size:20px">📋</div>
+                <div style="font-size:11px;color:#3A5A8A;font-weight:600">我的申请</div>
+              </div>
+              <div onclick="stuGo('stu-profile')" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:8px 4px;border-radius:12px;transition:.15s" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background='transparent'">
+                <div style="width:42px;height:42px;border-radius:12px;background:#F4EEFF;display:flex;align-items:center;justify-content:center;font-size:20px">👤</div>
+                <div style="font-size:11px;color:#3A5A8A;font-weight:600">个人档案</div>
+              </div>
+              <div onclick="stuGo('stu-msg')" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:8px 4px;border-radius:12px;transition:.15s;position:relative" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background='transparent'">
+                <div style="width:42px;height:42px;border-radius:12px;background:#E6F9F0;display:flex;align-items:center;justify-content:center;font-size:20px;position:relative">
+                  💬<span style="position:absolute;top:-4px;right:-4px;background:#FF4D4F;color:#fff;border-radius:6px;padding:0 4px;font-size:9px;font-weight:700">3</span>
+                </div>
+                <div style="font-size:11px;color:#3A5A8A;font-weight:600">消息</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 待办提醒 -->
+          <div class="section-title">⚡ 待办事项</div>
+          <div class="todo-banner" onclick="stuGo('stu-leave-detail')">
+            <div class="t-icon">📌</div>
+            <div class="t-body">
+              <div class="t-title">1 条请假待销假</div>
+              <div class="t-sub">已批准的病假记录，请返校后登记销假</div>
+            </div>
+            <div class="t-arrow">›</div>
+          </div>
+
+          <!-- 最近申请 -->
+          <div class="section-title" style="margin-top:2px">📋 最近申请</div>
+          <div class="list-item" onclick="stuGo('stu-leave-detail')">
+            <div class="list-title">病假申请 <span class="tag tag-green">✓ 已批准</span></div>
+            <div class="list-meta">2024-11-11 至 2024-11-12 · 1天 · 辅导员已审批</div>
+            <div style="margin-top:8px">
+              <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+              <div style="font-size:10px;color:#7AA3C8;margin-top:4px">审批完成</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 底部导航 -->
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="stuGo('stu-home')">
+            <div class="tab-icon-wrap">🏠</div><div>首页</div>
+          </div>
+          <div class="tab-item" onclick="stuGo('stu-leave-list')">
+            <div class="tab-icon-wrap">📅</div><div>请假</div>
+          </div>
+          <div class="tab-item" onclick="stuGo('stu-aid-home')">
+            <div class="tab-icon-wrap">💰</div><div>资助</div>
+          </div>
+          <div class="tab-item" onclick="stuGo('stu-profile')">
+            <div class="tab-icon-wrap">👤</div><div>档案</div>
+          </div>
+          <div class="tab-item" onclick="stuGo('stu-msg')">
+            <div class="tab-icon-wrap">💬</div><div>消息</div>
+            <div class="tab-badge">3</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S2: 请假申请表单 ══ -->
+      <div class="screen" id="stu-leave-form">
+        <div class="s-header" style="padding-bottom:24px">
+          <div class="s-header-nav">
+            <span class="nav-back" onclick="stuGo('stu-home')">←</span>
+            <div><div style="font-size:16px;font-weight:800">请假申请</div><div style="font-size:11px;opacity:.75;margin-top:2px">填写完整信息后提交审批</div></div>
+          </div>
+          <!-- 步骤指示 -->
+          <div style="display:flex;align-items:center;gap:4px;margin:14px 16px 0;position:relative;z-index:1">
+            <div style="flex:1;height:4px;background:rgba(255,255,255,.9);border-radius:2px"></div>
+            <div style="flex:1;height:4px;background:rgba(255,255,255,.35);border-radius:2px"></div>
+            <div style="flex:1;height:4px;background:rgba(255,255,255,.35);border-radius:2px"></div>
+            <div style="font-size:10px;opacity:.8;margin-left:6px">第1步/共3步</div>
+          </div>
+        </div>
+        <div class="s-content">
+          <div class="card">
+            <div class="card-title"><div class="ct-icon" style="background:#E6F0FF">📋</div>基本信息</div>
+            <div class="form-row">
+              <label>请假类型 <span style="color:#FF4D4F">*</span></label>
+              <!-- 类型卡片选择 -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+                <div style="border:2px solid #1677FF;background:#E6F0FF;border-radius:10px;padding:10px;text-align:center;cursor:pointer">
+                  <div style="font-size:18px">🤒</div>
+                  <div style="font-size:12px;font-weight:700;color:#1677FF;margin-top:4px">病假</div>
+                </div>
+                <div style="border:1.5px solid #D0E4FF;background:#F8FBFF;border-radius:10px;padding:10px;text-align:center;cursor:pointer">
+                  <div style="font-size:18px">📌</div>
+                  <div style="font-size:12px;font-weight:600;color:#5B8DB8;margin-top:4px">事假</div>
+                </div>
+                <div style="border:1.5px solid #D0E4FF;background:#F8FBFF;border-radius:10px;padding:10px;text-align:center;cursor:pointer">
+                  <div style="font-size:18px">🏫</div>
+                  <div style="font-size:12px;font-weight:600;color:#5B8DB8;margin-top:4px">公假</div>
+                </div>
+                <div style="border:1.5px solid #D0E4FF;background:#F8FBFF;border-radius:10px;padding:10px;text-align:center;cursor:pointer">
+                  <div style="font-size:18px">🏥</div>
+                  <div style="font-size:12px;font-weight:600;color:#5B8DB8;margin-top:4px">住院病假</div>
+                </div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="form-row" style="margin-bottom:0">
+                <label>开始时间 <span style="color:#FF4D4F">*</span></label>
+                <input type="date" class="form-input" value="2024-11-20">
+              </div>
+              <div class="form-row" style="margin-bottom:0">
+                <label>结束时间 <span style="color:#FF4D4F">*</span></label>
+                <input type="date" class="form-input" value="2024-11-22">
+              </div>
+            </div>
+            <div style="margin-top:10px;background:linear-gradient(135deg,#E6F0FF,#D4E9FF);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:12px;color:#4A78B8">自动计算天数</span>
+              <span style="font-size:20px;font-weight:800;color:#1677FF">3 天</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><div class="ct-icon" style="background:#FFF7E6">✏️</div>申请说明</div>
+            <div class="form-row">
+              <label>请假原因 <span style="color:#FF4D4F">*</span></label>
+              <textarea class="form-input" rows="3">感冒发烧，医院建议休息3天，已就诊附病历</textarea>
+            </div>
+            <div class="form-row" style="margin-bottom:0">
+              <label>联系电话</label>
+              <input type="tel" class="form-input" value="138xxxx0001">
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><div class="ct-icon" style="background:#F0FAE8">📎</div>附件上传</div>
+            <div style="border:2px dashed #91CAFF;border-radius:12px;padding:20px;text-align:center;background:#F8FBFF;cursor:pointer">
+              <div style="font-size:28px;margin-bottom:8px">☁️</div>
+              <div style="font-size:13px;font-weight:600;color:#1677FF">点击上传证明材料</div>
+              <div style="font-size:11px;color:#9BB8D4;margin-top:4px">支持图片/PDF，单文件≤20MB</div>
+            </div>
+          </div>
+
+          <!-- 审批链路 -->
+          <div class="card">
+            <div class="card-title"><div class="ct-icon" style="background:#F4EEFF">🔗</div>审批路径</div>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <div style="background:#E6F0FF;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:#1677FF">📝 学生提交</div>
+              <div style="color:#9BB8D4;font-size:14px">→</div>
+              <div style="background:#E6F0FF;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:#1677FF">👩‍🏫 辅导员</div>
+              <div style="color:#9BB8D4;font-size:10px;width:100%;text-align:center;padding:0 30px;color:#5B8DB8">（3天以上则继续）</div>
+              <div style="background:#F0FAE8;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;color:#389E0D">🏫 学院复核</div>
+              <div style="color:#9BB8D4;font-size:14px">→</div>
+              <div style="background:#FFF7E6;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;color:#D46B08">✅ 完成</div>
+            </div>
+          </div>
+
+          <button class="btn-primary" onclick="stuShowSubmitSuccess()">🚀 提交申请</button>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item" onclick="stuGo('stu-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div>
+          <div class="tab-item active"><div class="tab-icon-wrap">📅</div><div>请假</div></div>
+          <div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">🔔</div><div>通知</div></div>
+          <div class="tab-item" onclick="stuGo('stu-profile')"><div class="tab-icon-wrap">👤</div><div>档案</div></div>
+          <div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">💬</div><div>消息</div><div class="tab-badge">3</div></div>
+        </div>
+      </div>
+
+      <!-- ══ S3: 提交成功 ══ -->
+      <div class="screen" id="stu-leave-success">
+        <div class="s-header">
+          <h2>申请提交</h2><p>审批进度</p>
+        </div>
+        <div class="s-content" style="justify-content:center">
+          <div class="success-state">
+            <div class="s-icon">✅</div>
+            <div class="card-title">请假申请已提交！</div>
+            <p>已通知辅导员张老师审批<br>预计在1个工作日内完成</p>
+            <div style="margin-top:20px;display:flex;gap:10px">
+              <button class="btn-default btn-sm" onclick="stuGo('stu-leave-list')">查看进度</button>
+              <button class="btn-primary btn-sm" style="width:auto;padding:8px 16px" onclick="stuGo('stu-home')">返回首页</button>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="stuGo('stu-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item active"><div class="tab-icon-wrap">📅</div><div>请假</div></div><div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">🔔</div><div>通知</div></div><div class="tab-item" onclick="stuGo('stu-profile')"><div class="tab-icon-wrap">👤</div><div>档案</div></div><div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">💬</div><div>消息</div><div class="tab-badge">3</div></div></div>
+      </div>
+
+      <!-- ══ S4: 我的申请列表 ══ -->
+      <div class="screen" id="stu-leave-list">
+        <div class="s-header">
+          <h2>我的申请</h2><p>查看所有请假记录</p>
+        </div>
+        <div class="s-content">
+          <!-- 筛选 -->
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="tag tag-blue" style="cursor:pointer;padding:4px 10px">全部</span>
+            <span class="tag tag-gray" style="cursor:pointer;padding:4px 10px">待审批</span>
+            <span class="tag tag-gray" style="cursor:pointer;padding:4px 10px">已批准</span>
+            <span class="tag tag-gray" style="cursor:pointer;padding:4px 10px">已销假</span>
+          </div>
+          <!-- 记录列表 -->
+          <div class="list-item" onclick="stuGo('stu-leave-detail')">
+            <div class="title">📅 病假 · 1天 <span class="tag tag-green">已批准</span></div>
+            <div class="meta">2024-11-11 至 2024-11-12 · 辅导员：张老师</div>
+            <div class="actions">
+              <button class="btn-success btn-sm" onclick="stuShowXiaoJia(event)">📌 办理销假</button>
+              <button class="btn-default btn-sm" onclick="stuGo('stu-leave-detail')">查看详情</button>
+            </div>
+          </div>
+          <div class="list-item">
+            <div class="title">📅 事假 · 2天 <span class="tag tag-red">已驳回</span></div>
+            <div class="meta">2024-10-18 至 2024-10-19 · 驳回：请假理由不充分</div>
+            <div class="actions">
+              <button class="btn-default btn-sm">查看原因</button>
+              <button class="btn-primary btn-sm" style="width:auto;padding:5px 12px" onclick="stuGo('stu-leave-form')">重新申请</button>
+            </div>
+          </div>
+          <div class="list-item">
+            <div class="title">📅 病假 · 3天 <span class="tag tag-gray">已销假</span></div>
+            <div class="meta">2024-09-05 至 2024-09-07 · 销假时间：2024-09-08 09:30</div>
+            <div class="actions">
+              <button class="btn-default btn-sm">查看详情</button>
+            </div>
+          </div>
+          <div class="list-item">
+            <div class="title">📅 事假 · 1天 <span class="tag tag-orange">待审批</span></div>
+            <div class="meta">2024-11-20 至 2024-11-20 · 刚刚提交</div>
+            <div class="actions">
+              <button class="btn-danger btn-sm" onclick="stuWithdraw()">撤回申请</button>
+              <button class="btn-default btn-sm">查看详情</button>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="stuGo('stu-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item active"><div class="tab-icon-wrap">📅</div><div>请假</div></div><div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">🔔</div><div>通知</div></div><div class="tab-item" onclick="stuGo('stu-profile')"><div class="tab-icon-wrap">👤</div><div>档案</div></div><div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">💬</div><div>消息</div><div class="tab-badge">3</div></div></div>
+      </div>
+
+      <!-- ══ S5: 申请详情/审批进度 ══ -->
+      <div class="screen" id="stu-leave-detail">
+        <div class="s-header" style="display:flex;align-items:center;gap:10px">
+          <span style="cursor:pointer;font-size:18px" onclick="stuGo('stu-leave-list')">←</span>
+          <div><h2>申请详情</h2><p>病假 · 2024-11-11</p></div>
+        </div>
+        <div class="s-content">
+          <div class="card">
+            <div class="card-title">📋 申请信息</div>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:12px">
+              <span style="color:#909399">申请编号</span><span style="font-weight:600">LV2024001</span>
+              <span style="color:#909399">请假类型</span><span>病假</span>
+              <span style="color:#909399">请假时间</span><span>2024-11-11 至 2024-11-12</span>
+              <span style="color:#909399">请假天数</span><span>1天</span>
+              <span style="color:#909399">请假原因</span><span>感冒发烧，医院就诊需休息</span>
+              <span style="color:#909399">当前状态</span><span><span class="tag tag-green">已批准</span></span>
+            </div>
+          </div>
+          <!-- 审批进度 -->
+          <div class="card">
+            <div class="card-title">📍 审批进度</div>
+            <div class="step-list">
+              <div class="step-row">
+                <div class="step-dot-col">
+                  <div class="step-dot done">✓</div>
+                  <div class="step-line" style="background:#52c41a"></div>
+                </div>
+                <div class="step-text">
+                  <div class="step-title">学生提交</div>
+                  <div class="step-sub">张三 · 2024-11-10 09:15</div>
+                </div>
+              </div>
+              <div class="step-row">
+                <div class="step-dot-col">
+                  <div class="step-dot done" style="background:#52c41a">✓</div>
+                  <div class="step-line" style="background:#52c41a"></div>
+                </div>
+                <div class="step-text">
+                  <div class="step-title">辅导员审批</div>
+                  <div class="step-sub">张辅导员 批准 · 2024-11-10 10:30</div>
+                  <div style="background:#f6ffed;border-radius:6px;padding:5px 8px;margin-top:4px;font-size:11px;color:#389e0d">情况属实，同意请假</div>
+                </div>
+              </div>
+              <div class="step-row">
+                <div class="step-dot-col">
+                  <div class="step-dot done" style="background:#52c41a">✓</div>
+                </div>
+                <div class="step-text">
+                  <div class="step-title" style="color:#52c41a">审批完成 · 待销假</div>
+                  <div class="step-sub">返校后请及时办理销假</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 销假区 -->
+          <div class="card" style="border:1.5px solid #1890ff">
+            <h3 style="color:#1890ff">📌 销假登记</h3>
+            <div class="form-row">
+              <label>返校时间</label>
+              <input type="datetime-local" class="form-input" value="2024-11-13T09:00">
+            </div>
+            <button class="btn-primary" onclick="stuShowXiaoJiaSuccess()">确认销假</button>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="stuGo('stu-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item active"><div class="tab-icon-wrap">📅</div><div>请假</div></div><div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">🔔</div><div>通知</div></div><div class="tab-item" onclick="stuGo('stu-profile')"><div class="tab-icon-wrap">👤</div><div>档案</div></div><div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">💬</div><div>消息</div><div class="tab-badge">3</div></div></div>
+      </div>
+
+      <!-- ══ S6: 个人档案 ══ -->
+      <div class="screen" id="stu-profile">
+        <div class="profile-header">
+          <div class="avatar">👨‍🎓</div>
+          <div class="profile-name">张三</div>
+          <div class="profile-sub">计算机学院 · 计应2201 · 学号 2022001</div>
+          <div class="info-grid" style="margin-top:14px">
+            <div class="info-cell"><div class="v">86.5</div><div class="l">均分</div></div>
+            <div class="info-cell"><div class="v">88.3</div><div class="l">综合素质</div></div>
+            <div class="info-cell"><div class="v">正常</div><div class="l">学籍状态</div></div>
+            <div class="info-cell"><div class="v">3年级</div><div class="l">年级</div></div>
+          </div>
+        </div>
+        <div class="s-content">
+          <div class="card">
+            <h3>📝 基本信息
+              <span style="margin-left:auto;font-size:11px;color:#1890ff;font-weight:400;cursor:pointer" onclick="document.getElementById('editContactOverlay').style.display='flex'">✏️ 修改联系方式</span>
+            </h3>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:12px">
+              <span style="color:#909399">姓名</span><span>张三</span>
+              <span style="color:#909399">性别</span><span>男</span>
+              <span style="color:#909399">身份证号</span><span>13****1990****001X</span>
+              <span style="color:#909399">手机号</span><span id="profilePhone">138xxxx0001</span>
+              <span style="color:#909399">邮箱</span><span id="profileEmail">zhangsan@edu.cn</span>
+              <span style="color:#909399">入学年份</span><span>2022年</span>
+              <span style="color:#909399">专业</span><span>计算机应用技术</span>
+              <span style="color:#909399">班级</span><span>计应2201</span>
+              <span style="color:#909399">辅导员</span><span>张辅导员</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">🏠 家庭信息</div>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:12px">
+              <span style="color:#909399">家庭地址</span><span>河北省石家庄市某区某街道</span>
+              <span style="color:#909399">紧急联系人</span><span>张父（父亲）</span>
+              <span style="color:#909399">联系电话</span><span>139****0002</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">🎓 奖助情况</div>
+            <div style="font-size:12px;color:#606266">
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f5f5f5"><span>2022-2023学年 三等奖学金</span><span style="color:#1890ff;font-weight:600">¥500</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0"><span>2023-2024学年 国家励志奖学金</span><span style="color:#1890ff;font-weight:600">¥5000</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📜 奖惩记录</div>
+            <div style="font-size:12px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5">
+                <div>
+                  <div style="font-weight:600;color:#303133">优秀学生干部</div>
+                  <div style="color:#909399;margin-top:2px">2023-2024学年 · 校级表彰</div>
+                </div>
+                <span class="tag tag-green">奖励</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5">
+                <div>
+                  <div style="font-weight:600;color:#303133">优秀志愿者</div>
+                  <div style="color:#909399;margin-top:2px">2022-2023学年 · 院级表彰</div>
+                </div>
+                <span class="tag tag-green">奖励</span>
+              </div>
+              <div style="text-align:center;padding:10px;color:#52c41a;font-size:12px">✅ 无处分记录</div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="stuGo('stu-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item" onclick="stuGo('stu-leave-list')"><div class="tab-icon-wrap">📅</div><div>请假</div></div><div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">🔔</div><div>通知</div></div><div class="tab-item active"><div class="tab-icon-wrap">👤</div><div>档案</div></div><div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">💬</div><div>消息</div><div class="tab-badge">3</div></div></div>
+      </div>
+
+      <!-- ══ S7: 消息通知 ══ -->
+      <div class="screen" id="stu-msg">
+        <div class="s-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div><h2>消息通知</h2><p>3条未读</p></div>
+          <button style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer">全部已读</button>
+        </div>
+        <div class="s-content">
+          <div class="card">
+            <!-- 未读 -->
+            <div class="msg-item">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><span class="msg-icon">✅</span><div class="msg-unread"></div></div>
+              <div>
+                <div class="msg-title">请假申请已批准</div>
+                <div class="msg-content">您的病假申请（2024-11-11，1天）已由张辅导员批准，请及时安排返校销假。</div>
+                <div class="msg-time">2024-11-10 10:30</div>
+              </div>
+            </div>
+            <div class="msg-item">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><span class="msg-icon">📌</span><div class="msg-unread"></div></div>
+              <div>
+                <div class="msg-title">销假提醒</div>
+                <div class="msg-content">您的请假已于2024-11-12结束，尚未办理销假手续，请尽快在返校后登记。</div>
+                <div class="msg-time">2024-11-13 09:00</div>
+              </div>
+            </div>
+            <div class="msg-item">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><span class="msg-icon">📢</span><div class="msg-unread"></div></div>
+              <div>
+                <div class="msg-title">综合素质测评通知</div>
+                <div class="msg-content">综合素质测评将于2024年5月31日截止，请及时登录PC端提交材料。</div>
+                <div class="msg-time">2024-04-15 10:00</div>
+              </div>
+            </div>
+            <!-- 已读 -->
+            <div class="msg-item" style="opacity:.6">
+              <span class="msg-icon">❌</span>
+              <div>
+                <div class="msg-title">请假申请已驳回</div>
+                <div class="msg-content">您的事假申请（2024-10-18，2天）已被驳回，原因：请假理由不充分。</div>
+                <div class="msg-time">2024-10-15 14:22</div>
+              </div>
+            </div>
+            <div class="msg-item" style="opacity:.6">
+              <span class="msg-icon">✅</span>
+              <div>
+                <div class="msg-title">勤工助学录用通知</div>
+                <div class="msg-content">恭喜您已被录用为图书馆整理员岗位，请尽快前往签署协议。</div>
+                <div class="msg-time">2024-04-10 16:30</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="stuGo('stu-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item" onclick="stuGo('stu-leave-list')"><div class="tab-icon-wrap">📅</div><div>请假</div></div><div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">🔔</div><div>通知</div></div><div class="tab-item" onclick="stuGo('stu-profile')"><div class="tab-icon-wrap">👤</div><div>档案</div></div><div class="tab-item active"><div class="tab-icon-wrap">💬</div><div>消息</div></div></div>
+      </div>
+
+
+      <!-- ══ S8: 资助奖励首页 ══ -->
+      <div class="screen" id="stu-aid-home">
+        <div class="s-header" style="background:linear-gradient(135deg,#7b1fa2,#ab47bc)">
+          <h2>💰 资助与奖励</h2><p>贫困认定 · 助学金 · 奖学金 · 历史记录</p>
+        </div>
+        <div class="s-content">
+          <!-- 我的资助概览 -->
+          <div class="card">
+            <div class="card-title">📊 我的资助概览</div>
+            <div class="stat-row">
+              <div class="stat-card" style="background:#f9f0ff"><div class="stat-num" style="color:#722ed1">5500</div><div class="stat-label">累计资助(元)</div></div>
+              <div class="stat-card" style="background:#fff7e6"><div class="stat-num" style="color:#d48806">1</div><div class="stat-label">进行中申请</div></div>
+            </div>
+          </div>
+          <!-- 功能入口 -->
+          <div class="card">
+            <div class="card-title">🚀 快捷功能</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div onclick="stuGo('stu-aid-apply')" style="background:#f9f0ff;border-radius:10px;padding:14px;text-align:center;cursor:pointer;border:1px solid #efdbff">
+                <div style="font-size:24px;margin-bottom:6px">📋</div>
+                <div style="font-size:13px;font-weight:600;color:#722ed1">贫困认定申请</div>
+                <div style="font-size:11px;color:#909399;margin-top:4px">P0 · 提交认定材料</div>
+              </div>
+              <div onclick="stuGo('stu-aid-progress')" style="background:#e6f7ff;border-radius:10px;padding:14px;text-align:center;cursor:pointer;border:1px solid #91d5ff">
+                <div style="font-size:24px;margin-bottom:6px">🔍</div>
+                <div style="font-size:13px;font-weight:600;color:#096dd9">查看资助进度</div>
+                <div style="font-size:11px;color:#909399;margin-top:4px">P0 · 跟踪审批状态</div>
+              </div>
+              <div onclick="stuGo('stu-award-apply')" style="background:#fff7e6;border-radius:10px;padding:14px;text-align:center;cursor:pointer;border:1px solid #ffd591">
+                <div style="font-size:24px;margin-bottom:6px">🏅</div>
+                <div style="font-size:13px;font-weight:600;color:#d46b08">奖学金申请</div>
+                <div style="font-size:11px;color:#909399;margin-top:4px">P0 · 填写申请理由</div>
+              </div>
+              <div onclick="stuGo('stu-award-result')" style="background:#f6ffed;border-radius:10px;padding:14px;text-align:center;cursor:pointer;border:1px solid #b7eb8f">
+                <div style="font-size:24px;margin-bottom:6px">🎖️</div>
+                <div style="font-size:13px;font-weight:600;color:#389e0d">评定结果</div>
+                <div style="font-size:11px;color:#909399;margin-top:4px">P0 · 查看金额与状态</div>
+              </div>
+            </div>
+          </div>
+          <!-- 历史记录 -->
+          <div class="card">
+            <div class="card-title">🕐 历史资助</div>
+            <div style="font-size:12px">
+              <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5">
+                <div><div style="font-weight:600">国家励志奖学金</div><div style="color:#909399;margin-top:2px">2023-2024学年</div></div>
+                <span style="color:#1890ff;font-weight:600">¥5000</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:7px 0">
+                <div><div style="font-weight:600">三等奖学金</div><div style="color:#909399;margin-top:2px">2022-2023学年</div></div>
+                <span style="color:#1890ff;font-weight:600">¥500</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="stuGo('stu-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item" onclick="stuGo('stu-leave-list')"><div class="tab-icon-wrap">📅</div><div>请假</div></div><div class="tab-item active"><div class="tab-icon-wrap">🔔</div><div>通知</div></div><div class="tab-item" onclick="stuGo('stu-profile')"><div class="tab-icon-wrap">👤</div><div>档案</div></div><div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">💬</div><div>消息</div><div class="tab-badge">3</div></div></div>
+      </div>
+
+      <!-- ══ S9: 贫困认定申请 ══ -->
+      <div class="screen" id="stu-aid-apply">
+        <div class="s-header" style="background:linear-gradient(135deg,#7b1fa2,#ab47bc);display:flex;align-items:center;gap:10px">
+          <span style="cursor:pointer;font-size:18px" onclick="stuGo('stu-aid-home')">←</span>
+          <div><h2>贫困认定申请</h2><p>填写家庭情况与上传证明</p></div>
+        </div>
+        <div class="s-content">
+          <div class="card">
+            <div class="card-title">📋 申请说明</div>
+            <div class="alert-banner" style="background:#f9f0ff;border-color:#efdbff">
+              <span class="icon">ℹ️</span>
+              <div class="text" style="color:#531dab">认定周期：每学年9-10月开放申请。<strong>需上传</strong>：户籍证明、家庭收入证明、村委/居委会证明（三选二）。</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="form-row">
+              <label>申请学年 <span style="color:#ff4d4f">*</span></label>
+              <select class="form-input form-select">
+                <option>2024-2025学年</option><option>2023-2024学年</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>家庭年收入(元) <span style="color:#ff4d4f">*</span></label>
+              <input type="number" class="form-input" placeholder="请填写家庭年收入">
+            </div>
+            <div class="form-row">
+              <label>家庭人口数 <span style="color:#ff4d4f">*</span></label>
+              <input type="number" class="form-input" placeholder="家庭总人口">
+            </div>
+            <div class="form-row">
+              <label>困难原因 <span style="color:#ff4d4f">*</span></label>
+              <select class="form-input form-select">
+                <option>父母务农收入低</option>
+                <option>单亲家庭</option>
+                <option>父母重病/残疾</option>
+                <option>天灾人祸</option>
+                <option>其他</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>家庭情况描述 <span style="color:#ff4d4f">*</span></label>
+              <textarea class="form-input" rows="3" placeholder="请详细描述家庭经济状况..."></textarea>
+            </div>
+            <div class="form-row">
+              <label>上传证明材料 <span style="color:#ff4d4f">*</span></label>
+              <div style="border:1.5px dashed #d9d9d9;border-radius:8px;padding:14px;text-align:center;color:#c0c4cc;font-size:12px;cursor:pointer">
+                📎 点击上传（最多3个文件，支持图片/PDF）
+              </div>
+            </div>
+          </div>
+          <button class="btn-primary" onclick="stuAidSubmit()">提交认定申请</button>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="stuGo('stu-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item" onclick="stuGo('stu-leave-list')"><div class="tab-icon-wrap">📅</div><div>请假</div></div><div class="tab-item active"><div class="tab-icon-wrap">🔔</div><div>通知</div></div><div class="tab-item" onclick="stuGo('stu-profile')"><div class="tab-icon-wrap">👤</div><div>档案</div></div><div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">💬</div><div>消息</div><div class="tab-badge">3</div></div></div>
+      </div>
+
+      <!-- ══ S10: 资助进度 ══ -->
+      <div class="screen" id="stu-aid-progress">
+        <div class="s-header" style="background:linear-gradient(135deg,#7b1fa2,#ab47bc);display:flex;align-items:center;gap:10px">
+          <span style="cursor:pointer;font-size:18px" onclick="stuGo('stu-aid-home')">←</span>
+          <div><h2>资助进度</h2><p>2024-2025学年 · 贫困认定</p></div>
+        </div>
+        <div class="s-content">
+          <div class="card">
+            <div class="card-title">📋 申请信息</div>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:12px">
+              <span style="color:#909399">申请编号</span><span style="font-weight:600">AID2024001</span>
+              <span style="color:#909399">申请类型</span><span>家庭经济困难认定</span>
+              <span style="color:#909399">申请学年</span><span>2024-2025学年</span>
+              <span style="color:#909399">提交时间</span><span>2024-09-05 14:00</span>
+              <span style="color:#909399">当前状态</span><span><span class="tag tag-blue">学院审核中</span></span>
+            </div>
+          </div>
+          <!-- 审批步骤 -->
+          <div class="card">
+            <div class="card-title">📍 审批进度</div>
+            <div class="step-list">
+              <div class="step-row">
+                <div class="step-dot-col"><div class="step-dot done">✓</div><div class="step-line" style="background:#52c41a"></div></div>
+                <div class="step-text">
+                  <div class="step-title">学生提交</div>
+                  <div class="step-sub">张三 · 2024-09-05 14:00 · 已上传村委证明</div>
+                </div>
+              </div>
+              <div class="step-row">
+                <div class="step-dot-col"><div class="step-dot done" style="background:#52c41a">✓</div><div class="step-line" style="background:#52c41a"></div></div>
+                <div class="step-text">
+                  <div class="step-title">辅导员核查</div>
+                  <div class="step-sub">张辅导员 · 2024-09-06 · 家庭情况属实，推荐认定</div>
+                </div>
+              </div>
+              <div class="step-row">
+                <div class="step-dot-col"><div class="step-dot active">...</div><div class="step-line"></div></div>
+                <div class="step-text">
+                  <div class="step-title" style="color:#1890ff">学院审核中</div>
+                  <div class="step-sub">预计2-3个工作日完成</div>
+                </div>
+              </div>
+              <div class="step-row">
+                <div class="step-dot-col"><div class="step-dot pending">4</div></div>
+                <div class="step-text">
+                  <div class="step-title" style="color:#bfbfbf">校级审定</div>
+                  <div class="step-sub" style="color:#bfbfbf">学生处最终审定</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3 style="color:#fa8c16">⏰ 预计时间线</h3>
+            <div style="font-size:12px;color:#606266;line-height:2">
+              <div>学院审核：2024-09-10 前完成</div>
+              <div>校级审定：2024-09-20 前完成</div>
+              <div>结果公示：2024-09-25</div>
+              <div>发放时间：2024-10-15</div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="stuGo('stu-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item" onclick="stuGo('stu-leave-list')"><div class="tab-icon-wrap">📅</div><div>请假</div></div><div class="tab-item active"><div class="tab-icon-wrap">🔔</div><div>通知</div></div><div class="tab-item" onclick="stuGo('stu-profile')"><div class="tab-icon-wrap">👤</div><div>档案</div></div><div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">💬</div><div>消息</div><div class="tab-badge">3</div></div></div>
+      </div>
+
+      <!-- ══ S11: 奖学金申请 ══ -->
+      <div class="screen" id="stu-award-apply">
+        <div class="s-header" style="background:linear-gradient(135deg,#b7611a,#d4780a);display:flex;align-items:center;gap:10px">
+          <span style="cursor:pointer;font-size:18px" onclick="stuGo('stu-aid-home')">←</span>
+          <div><h2>奖学金申请</h2><p>填写申请理由与成绩材料</p></div>
+        </div>
+        <div class="s-content">
+          <div class="card">
+            <div class="card-title">🏅 可申请项目</div>
+            <div style="font-size:12px">
+              <div style="border:1px solid #ffd591;border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer;background:#fffbe6" onclick="document.getElementById('selectedAward').textContent='国家励志奖学金'">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div style="font-weight:600;color:#d46b08">国家励志奖学金</div>
+                  <span style="color:#d46b08;font-weight:700">¥5000</span>
+                </div>
+                <div style="color:#909399;margin-top:3px">条件：家庭经济困难，品学兼优，专业前10%</div>
+                <div style="color:#52c41a;margin-top:3px;font-size:11px">✅ 您符合申请条件</div>
+              </div>
+              <div style="border:1px solid #d9d9d9;border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer" onclick="document.getElementById('selectedAward').textContent='一等奖学金'">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div style="font-weight:600">一等奖学金</div>
+                  <span style="color:#1890ff;font-weight:700">¥2000</span>
+                </div>
+                <div style="color:#909399;margin-top:3px">条件：专业前5%，无纪律处分</div>
+                <div style="color:#fa8c16;margin-top:3px;font-size:11px">⚠️ 成绩需在前5%（当前：前8%）</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="form-row">
+              <label>申请项目</label>
+              <div style="background:#f5f6fa;border-radius:8px;padding:8px 10px;font-size:13px;color:#1890ff;font-weight:600" id="selectedAward">国家励志奖学金</div>
+            </div>
+            <div class="form-row">
+              <label>申请理由 <span style="color:#ff4d4f">*</span></label>
+              <textarea class="form-input" rows="4" placeholder="请简述申请理由，包括学习情况、家庭情况、个人获奖情况等...">本人家庭经济困难，在校期间刻苦学习，本学期专业排名前8%，曾获校级优秀学生干部表彰，志愿服务时长累计80小时。</textarea>
+            </div>
+            <div class="form-row">
+              <label>上传成绩证明</label>
+              <div style="border:1.5px dashed #d9d9d9;border-radius:8px;padding:14px;text-align:center;color:#c0c4cc;font-size:12px;cursor:pointer">📎 上传成绩单（可选，系统将自动关联）</div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#909399;text-align:center;margin-bottom:4px">系统将自动关联您的成绩、综合素质分及资助记录</div>
+          <button class="btn-primary" onclick="stuAwardSubmit()">提交奖学金申请</button>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="stuGo('stu-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item" onclick="stuGo('stu-leave-list')"><div class="tab-icon-wrap">📅</div><div>请假</div></div><div class="tab-item active"><div class="tab-icon-wrap">🔔</div><div>通知</div></div><div class="tab-item" onclick="stuGo('stu-profile')"><div class="tab-icon-wrap">👤</div><div>档案</div></div><div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">💬</div><div>消息</div><div class="tab-badge">3</div></div></div>
+      </div>
+
+      <!-- ══ S12: 奖学金评定结果 ══ -->
+      <div class="screen" id="stu-award-result">
+        <div class="s-header" style="background:linear-gradient(135deg,#b7611a,#d4780a);display:flex;align-items:center;gap:10px">
+          <span style="cursor:pointer;font-size:18px" onclick="stuGo('stu-aid-home')">←</span>
+          <div><h2>评定结果</h2><p>奖学金评审状态与金额</p></div>
+        </div>
+        <div class="s-content">
+          <!-- 当前年度 -->
+          <div class="card" style="border-left:3px solid #52c41a">
+            <div class="card-title">2024-2025学年</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div>
+                <div style="font-size:15px;font-weight:700;color:#303133">国家励志奖学金</div>
+                <div style="font-size:12px;color:#909399;margin-top:3px">申请时间：2024-10-01</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:20px;font-weight:700;color:#52c41a">¥5000</div>
+                <span class="tag tag-blue">公示中</span>
+              </div>
+            </div>
+            <div class="step-list">
+              <div class="step-row">
+                <div class="step-dot-col"><div class="step-dot done">✓</div><div class="step-line" style="background:#52c41a"></div></div>
+                <div class="step-text"><div class="step-title">辅导员推荐</div><div class="step-sub">2024-10-05 · 推荐通过</div></div>
+              </div>
+              <div class="step-row">
+                <div class="step-dot-col"><div class="step-dot done" style="background:#52c41a">✓</div><div class="step-line" style="background:#52c41a"></div></div>
+                <div class="step-text"><div class="step-title">学院初审</div><div class="step-sub">2024-10-10 · 材料完整，同意上报</div></div>
+              </div>
+              <div class="step-row">
+                <div class="step-dot-col"><div class="step-dot active">...</div></div>
+                <div class="step-text">
+                  <div class="step-title" style="color:#1890ff">公示期（7天）</div>
+                  <div class="step-sub">2024-10-15 至 2024-10-22，无异议后发放</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 历史记录 -->
+          <div class="card">
+            <div class="card-title">📜 历史评定结果</div>
+            <div style="font-size:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5">
+                <div>
+                  <div style="font-weight:600">2023-2024学年 · 国家励志奖学金</div>
+                  <div style="color:#909399;margin-top:2px">发放日期：2023-12-15</div>
+                </div>
+                <div style="text-align:right"><div style="color:#52c41a;font-weight:700">¥5000</div><span class="tag tag-green">已发放</span></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+                <div>
+                  <div style="font-weight:600">2022-2023学年 · 三等奖学金</div>
+                  <div style="color:#909399;margin-top:2px">发放日期：2022-12-20</div>
+                </div>
+                <div style="text-align:right"><div style="color:#52c41a;font-weight:700">¥500</div><span class="tag tag-green">已发放</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="stuGo('stu-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item" onclick="stuGo('stu-leave-list')"><div class="tab-icon-wrap">📅</div><div>请假</div></div><div class="tab-item active"><div class="tab-icon-wrap">🔔</div><div>通知</div></div><div class="tab-item" onclick="stuGo('stu-profile')"><div class="tab-icon-wrap">👤</div><div>档案</div></div><div class="tab-item" onclick="stuGo('stu-msg')"><div class="tab-icon-wrap">💬</div><div>消息</div><div class="tab-badge">3</div></div></div>
+      </div>
+
+    </div><!-- /phone-body -->
+  </div><!-- /phone -->
+</div><!-- /phone-wrap stu -->
+
+<!-- ══════════════════════════════════════════
+     辅 导 员 端 手 机
+══════════════════════════════════════════ -->
+<div class="phone-wrap" id="phoneCnl" style="display:none">
+  <div class="phone-label">辅导员端 · 张辅导员</div>
+  <div class="phone">
+    <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+    <div class="phone-body" id="cnlPhoneBody">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>📶 🔋</span>
+      </div>
+
+      <!-- ══ C1: 辅导员首页 ══ -->
+      <div class="screen active" id="cnl-home">
+        <div class="s-header cnl-header">
+          <!-- 顶行：问候 + 预警 -->
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <h2>你好，张辅导员 👋</h2>
+              <p>计算机学院</p>
+            </div>
+            <div style="position:relative;cursor:pointer" onclick="cnlGo('cnl-alerts')">
+              <span style="font-size:22px">⚠️</span>
+              <span style="position:absolute;top:-4px;right:-4px;background:#ff4d4f;color:#fff;border-radius:10px;padding:0 5px;font-size:10px">2</span>
+            </div>
+          </div>
+          <!-- 班级切换栏 -->
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px;background:rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;cursor:pointer" onclick="showClassPicker()">
+            <span style="font-size:16px">🏫</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:700;color:#fff" id="curClassName">计应2201</div>
+              <div style="font-size:10px;opacity:.75;margin-top:1px">当前班级 · 共管理 <span id="totalClsCount">3</span> 个班级</div>
+            </div>
+            <span style="color:rgba(255,255,255,.6);font-size:18px">⌄</span>
+          </div>
+          <!-- 数据卡 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">
+            <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer" onclick="cnlGo('cnl-students')">
+              <div style="font-size:22px;font-weight:700;color:#fff" id="kpiStuCount">45</div>
+              <div style="font-size:10px;opacity:.9;margin-top:2px">班级学生</div>
+            </div>
+            <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer" onclick="cnlGo('cnl-pending')">
+              <div style="font-size:22px;font-weight:700;color:#fff" id="kpiPending">4</div>
+              <div style="font-size:10px;opacity:.9;margin-top:2px">待审批</div>
+            </div>
+            <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer" onclick="cnlGo('cnl-alerts')">
+              <div style="font-size:22px;font-weight:700;color:#fadb14" id="kpiAlert">2</div>
+              <div style="font-size:10px;opacity:.9;margin-top:2px">超假预警</div>
+            </div>
+          </div>
+          <!-- KPI行 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+            <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:8px;text-align:center;cursor:pointer" onclick="cnlGo('cnl-alerts')">
+              <div style="font-size:16px;font-weight:700;color:#69c0ff">5</div>
+              <div style="font-size:10px;opacity:.85;margin-top:1px">未读消息</div>
+            </div>
+            <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:8px;text-align:center;cursor:pointer" onclick="cnlGo('cnl-history')">
+              <div style="font-size:16px;font-weight:700;color:#ffd666">18.2%</div>
+              <div style="font-size:10px;opacity:.85;margin-top:1px">本月请假率</div>
+            </div>
+          </div>
+        </div>
+        <div class="s-content">
+          <!-- 超假预警 -->
+          <div class="card" style="border-left:3px solid #1677FF">
+            <h3>💬 消息通知 <span class="badge">5</span></h3>
+            <div class="alert-banner" onclick="cnlGo('cnl-alerts')" style="cursor:pointer">
+              <span class="icon">🚨</span>
+              <div class="text"><strong>李四</strong> 假期已结束 <strong>2天</strong>，尚未返校销假，请联系确认。</div>
+            </div>
+            <div class="alert-banner" style="margin-top:8px;cursor:pointer" onclick="cnlGo('cnl-alerts')">
+              <span class="icon">⚠️</span>
+              <div class="text"><strong>王五</strong> 今日请假到期，尚未办理销假手续。</div>
+            </div>
+          </div>
+          <!-- 待审批 -->
+          <div class="card">
+            <h3>📋 待审批 <span class="badge">4</span></h3>
+            <div class="list-item" onclick="cnlGo('cnl-detail-1')">
+              <div class="title">张三 · 事假 · 1天 <span class="tag tag-orange">待审批</span></div>
+              <div class="meta">2024-11-20 · 家庭有事需请假1天</div>
+            </div>
+            <div style="height:6px"></div>
+            <div class="list-item" onclick="cnlGo('cnl-detail-2')">
+              <div class="title">李四 · 病假 · 3天 <span class="tag tag-orange">待审批</span></div>
+              <div class="meta">2024-11-18 至 11-20 · 随附门诊证明</div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item active"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item" onclick="cnlGo('cnl-pending')"><div class="tab-icon-wrap">📋</div><div>待审批</div><div class="tab-badge">4</div></div><div class="tab-item" onclick="cnlGo('cnl-students')"><div class="tab-icon-wrap">👥</div><div>学生</div></div><div class="tab-item" onclick="cnlGo('cnl-alerts')"><div class="tab-icon-wrap">💬</div><div>通知</div><div class="tab-badge">2</div></div></div>
+      </div>
+
+      <!-- ══ C2: 待审批列表 ══ -->
+      <div class="screen" id="cnl-pending">
+        <div class="s-header cnl-header">
+          <h2>待审批请假</h2><p>共4条待处理</p>
+        </div>
+        <div class="s-content">
+          <div style="display:flex;gap:6px;margin-bottom:2px">
+            <span class="tag tag-blue" style="padding:4px 10px;cursor:pointer">全部(4)</span>
+            <span class="tag tag-gray" style="padding:4px 10px;cursor:pointer">事假</span>
+            <span class="tag tag-gray" style="padding:4px 10px;cursor:pointer">病假</span>
+          </div>
+          <div class="list-item" onclick="cnlGo('cnl-detail-1')">
+            <div class="title">张三 · 事假 · 1天 <span class="tag tag-orange">待审批</span></div>
+            <div class="meta">申请时间：2024-11-20 08:30<br>2024-11-20 · 家庭有事需请假1天<br>联系：138xxxx0001</div>
+            <div class="actions">
+              <button class="btn-success btn-sm" onclick="cnlQuickApprove(event,'张三')">✓ 批准</button>
+              <button class="btn-danger btn-sm" onclick="cnlQuickReject(event,'张三')">✗ 驳回</button>
+              <button class="btn-default btn-sm" onclick="cnlGo('cnl-detail-1')">详情</button>
+            </div>
+          </div>
+          <div class="list-item" onclick="cnlGo('cnl-detail-2')">
+            <div class="title">李四 · 病假 · 3天 <span class="tag tag-orange">待审批</span></div>
+            <div class="meta">申请时间：2024-11-18 10:15<br>2024-11-18 至 2024-11-20<br>已上传：门诊就诊证明.jpg</div>
+            <div class="actions">
+              <button class="btn-success btn-sm" onclick="cnlQuickApprove(event,'李四')">✓ 批准</button>
+              <button class="btn-danger btn-sm" onclick="cnlQuickReject(event,'李四')">✗ 驳回</button>
+              <button class="btn-default btn-sm" onclick="cnlGo('cnl-detail-2')">详情</button>
+            </div>
+          </div>
+          <div class="list-item">
+            <div class="title">王五 · 公假 · 2天 <span class="tag tag-orange">待审批</span></div>
+            <div class="meta">申请时间：2024-11-19 14:00<br>2024-11-21 至 2024-11-22 · 省级竞赛</div>
+            <div class="actions">
+              <button class="btn-success btn-sm" onclick="cnlQuickApprove(event,'王五')">✓ 批准</button>
+              <button class="btn-danger btn-sm" onclick="cnlQuickReject(event,'王五')">✗ 驳回</button>
+              <button class="btn-default btn-sm">详情</button>
+            </div>
+          </div>
+          <div class="list-item">
+            <div class="title">赵六 · 事假 · 4天 <span class="tag tag-orange">待审批</span></div>
+            <div class="meta">申请时间：2024-11-19 16:30<br>⚠️ 超3天 · 需转学院负责人复核</div>
+            <div class="actions">
+              <button class="btn-success btn-sm" onclick="cnlQuickApprove(event,'赵六')">✓ 转交复核</button>
+              <button class="btn-danger btn-sm" onclick="cnlQuickReject(event,'赵六')">✗ 驳回</button>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="cnlGo('cnl-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item active"><div class="tab-icon-wrap">📋</div><div>待审批</div></div><div class="tab-item" onclick="cnlGo('cnl-students')"><div class="tab-icon-wrap">👥</div><div>学生</div></div><div class="tab-item" onclick="cnlGo('cnl-alerts')"><div class="tab-icon-wrap">💬</div><div>通知</div><div class="tab-badge">2</div></div></div>
+      </div>
+
+      <!-- ══ C3: 审批详情 · 张三 ══ -->
+      <div class="screen" id="cnl-detail-1">
+        <div class="s-header counselor-header" style="display:flex;align-items:center;gap:10px">
+          <span style="cursor:pointer;font-size:18px" onclick="cnlGo('cnl-pending')">←</span>
+          <div><h2>审批详情</h2><p>张三 · 事假</p></div>
+        </div>
+        <div class="s-content">
+          <div class="card">
+            <div class="card-title">👤 学生信息</div>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:12px">
+              <span style="color:#909399">姓名</span><span style="font-weight:600">张三</span>
+              <span style="color:#909399">学号</span><span>2022001</span>
+              <span style="color:#909399">班级</span><span>计应2201</span>
+              <span style="color:#909399">本学期请假</span><span>3次 · 合计5天</span>
+              <span style="color:#909399">纪律记录</span><span style="color:#52c41a">无处分</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📅 请假详情</div>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:12px">
+              <span style="color:#909399">请假类型</span><span>事假</span>
+              <span style="color:#909399">开始时间</span><span>2024-11-20 08:00</span>
+              <span style="color:#909399">结束时间</span><span>2024-11-20 22:00</span>
+              <span style="color:#909399">天数</span><span>1天</span>
+              <span style="color:#909399">请假原因</span><span>家庭有事需请假处理，请批准</span>
+              <span style="color:#909399">联系方式</span><span>138xxxx0001</span>
+              <span style="color:#909399">上传凭证</span><span style="color:#909399">无</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">✍️ 审批意见</div>
+            <textarea class="form-input" rows="3" placeholder="请填写审批意见（可选）..."></textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <button class="btn-danger" onclick="cnlRejectWithAnim()">驳回</button>
+            <button class="btn-success" onclick="cnlApproveWithAnim()">批准</button>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="cnlGo('cnl-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item active"><div class="tab-icon-wrap">📋</div><div>待审批</div><div class="tab-badge">4</div></div><div class="tab-item" onclick="cnlGo('cnl-students')"><div class="tab-icon-wrap">👥</div><div>学生</div></div><div class="tab-item" onclick="cnlGo('cnl-alerts')"><div class="tab-icon-wrap">💬</div><div>通知</div><div class="tab-badge">2</div></div></div>
+      </div>
+
+      <!-- ══ C4: 审批详情 · 李四 ══ -->
+      <div class="screen" id="cnl-detail-2">
+        <div class="s-header counselor-header" style="display:flex;align-items:center;gap:10px">
+          <span style="cursor:pointer;font-size:18px" onclick="cnlGo('cnl-pending')">←</span>
+          <div><h2>审批详情</h2><p>李四 · 病假</p></div>
+        </div>
+        <div class="s-content">
+          <div class="card">
+            <div class="card-title">👤 学生信息</div>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:12px">
+              <span style="color:#909399">姓名</span><span style="font-weight:600">李四</span>
+              <span style="color:#909399">学号</span><span>2022002</span>
+              <span style="color:#909399">班级</span><span>计应2201</span>
+              <span style="color:#909399">本学期请假</span><span>1次 · 合计3天</span>
+              <span style="color:#909399">纪律记录</span><span style="color:#52c41a">无处分</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📅 请假详情</div>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:12px">
+              <span style="color:#909399">请假类型</span><span>病假</span>
+              <span style="color:#909399">时间</span><span>2024-11-18 至 2024-11-20（3天）</span>
+              <span style="color:#909399">原因</span><span>急性肠胃炎，医院就诊需休息</span>
+              <span style="color:#909399">凭证</span><span style="color:#1890ff;cursor:pointer">📎 门诊就诊证明.jpg</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">✍️ 审批意见</div>
+            <textarea class="form-input" rows="3" placeholder="请填写审批意见（可选）...">情况属实，同意请假。</textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <button class="btn-danger" onclick="cnlRejectWithAnim()">驳回</button>
+            <button class="btn-success" onclick="cnlApproveWithAnim()">批准</button>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="cnlGo('cnl-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item active"><div class="tab-icon-wrap">📋</div><div>待审批</div><div class="tab-badge">4</div></div><div class="tab-item" onclick="cnlGo('cnl-students')"><div class="tab-icon-wrap">👥</div><div>学生</div></div><div class="tab-item" onclick="cnlGo('cnl-alerts')"><div class="tab-icon-wrap">💬</div><div>通知</div><div class="tab-badge">2</div></div></div>
+      </div>
+
+      <!-- ══ C5: 消息通知（含超假预警）══ -->
+      <div class="screen" id="cnl-alerts">
+        <div class="s-header cnl-header">
+          <h2>💬 消息通知</h2><p>超期预警按严重程度排序</p>
+        </div>
+        <div class="s-content">
+          <div class="card" style="border-left:3px solid #ff4d4f">
+            <div class="card-title">🚨 严重超假（超2天）</div>
+            <div class="list-item" style="border:1px solid #ffccc7;background:#fff2f0">
+              <div class="title">李四 <span class="tag tag-red">超假 2天</span></div>
+              <div class="meta">
+                原批准：2024-11-11 至 2024-11-12（1天）<br>
+                实际：至今未销假，已超期2天<br>
+                联系：138xxxx0002
+              </div>
+              <div class="actions" id="remarkActions_2022002">
+                <button class="btn-danger btn-sm">📞 联系学生</button>
+                <button id="remarkBtn_2022002" class="btn-default btn-sm" onclick="openRemarkModal('李四','2022002','超假2天，至今未销假','remarkActions_2022002')">📝 记录情况</button>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="border-left:3px solid #faad14">
+            <div class="card-title">⚠️ 今日到期未销假</div>
+            <div class="list-item" style="border:1px solid #ffd591;background:#fffbe6">
+              <div class="title">王五 <span class="tag tag-orange">今日到期</span></div>
+              <div class="meta">
+                批准：2024-11-18 至 2024-11-20（病假3天）<br>
+                截止时间：今日 23:59<br>
+                联系：138xxxx0003
+              </div>
+              <div class="actions" id="remarkActions_2022003">
+                <button class="btn-default btn-sm">📞 联系学生</button>
+                <button id="remarkBtn_2022003" class="btn-default btn-sm" onclick="openRemarkModal('王五','2022003','今日假期到期未销假','remarkActions_2022003')">📝 记录情况</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="cnlGo('cnl-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item" onclick="cnlGo('cnl-pending')"><div class="tab-icon-wrap">📋</div><div>待审批</div><div class="tab-badge">4</div></div><div class="tab-item" onclick="cnlGo('cnl-students')"><div class="tab-icon-wrap">👥</div><div>学生</div></div><div class="tab-item active"><div class="tab-icon-wrap">💬</div><div>通知</div></div></div>
+      </div>
+
+      <!-- ══ C6: 历史记录/统计 ══ -->
+      <div class="screen" id="cnl-history">
+        <div class="s-header cnl-header">
+          <h2>请假记录汇总</h2><p>计应2201 · 本学期</p>
+        </div>
+        <div class="s-content">
+          <div class="card">
+            <div class="card-title">📊 班级统计</div>
+            <div class="stat-row">
+              <div class="stat-card"><div class="stat-num">38</div><div class="stat-label">总申请数</div></div>
+              <div class="stat-card" style="background:#f6ffed"><div class="stat-num" style="color:#52c41a">31</div><div class="stat-label">已批准</div></div>
+              <div class="stat-card" style="background:#fff2f0"><div class="stat-num" style="color:#ff4d4f">4</div><div class="stat-label">待审批</div></div>
+              <div class="stat-card" style="background:#f5f5f5"><div class="stat-num" style="color:#8c8c8c">3</div><div class="stat-label">已驳回</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📋 近期记录</div>
+            <div style="font-size:12px">
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5">
+                <span>张三 · 事假 · 1天</span><span class="tag tag-orange">待审批</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5">
+                <span>李四 · 病假 · 3天</span><span class="tag tag-orange">待审批</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5">
+                <span>王五 · 公假 · 2天</span><span class="tag tag-orange">待审批</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5">
+                <span>张三 · 病假 · 1天</span><span class="tag tag-green">已销假</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0">
+                <span>赵六 · 事假 · 2天</span><span class="tag tag-red">已驳回</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="cnlGo('cnl-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item" onclick="cnlGo('cnl-pending')"><div class="tab-icon-wrap">📋</div><div>待审批</div><div class="tab-badge">4</div></div><div class="tab-item active"><div class="tab-icon-wrap">👥</div><div>学生</div></div><div class="tab-item" onclick="cnlGo('cnl-alerts')"><div class="tab-icon-wrap">💬</div><div>通知</div><div class="tab-badge">2</div></div></div>
+      </div>
+
+      <!-- ══ C7: 审批完成 ══ -->
+      <div class="screen" id="cnl-approve-done">
+        <div class="s-header cnl-header">
+          <h2>审批完成</h2>
+        </div>
+        <div class="s-content" style="justify-content:center">
+          <div class="success-state">
+            <div class="s-icon" id="cnlApproveIcon">✅</div>
+            <h3 id="cnlApproveTitle">已批准</h3>
+            <p id="cnlApproveMsg">审批结果已通知学生，学生将收到消息提醒。</p>
+            <div style="margin-top:20px;display:flex;gap:10px">
+              <button class="btn-default btn-sm" onclick="cnlGo('cnl-pending')">继续审批</button>
+              <button class="btn-primary btn-sm" style="width:auto;padding:8px 16px" onclick="cnlGo('cnl-home')">返回首页</button>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar"><div class="tab-item active"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item" onclick="cnlGo('cnl-pending')"><div class="tab-icon-wrap">📋</div><div>待审批</div><div class="tab-badge">4</div></div><div class="tab-item" onclick="cnlGo('cnl-students')"><div class="tab-icon-wrap">👥</div><div>学生</div></div><div class="tab-item" onclick="cnlGo('cnl-alerts')"><div class="tab-icon-wrap">💬</div><div>通知</div><div class="tab-badge">2</div></div></div>
+      </div>
+
+
+      <!-- ══ C8: 学生列表 ══ -->
+      <div class="screen" id="cnl-students">
+        <div class="s-header cnl-header">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><h2>👥 学生列表</h2><p id="stuListSubtitle">计应2201 · 共45人</p></div>
+            <div onclick="showClassPicker()" style="background:rgba(255,255,255,.18);border-radius:8px;padding:4px 10px;font-size:11px;color:#fff;cursor:pointer">切换班级 ⌄</div>
+          </div>
+        </div>
+        <div class="s-content">
+          <!-- 搜索 -->
+          <div style="display:flex;gap:8px">
+            <input type="text" class="form-input" placeholder="搜索姓名或学号..." style="flex:1">
+            <button class="btn-default btn-sm" style="flex-shrink:0">搜索</button>
+          </div>
+          <!-- 筛选标签 -->
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="tag tag-blue" style="cursor:pointer;padding:3px 10px">全部(45)</span>
+            <span class="tag tag-gray" style="cursor:pointer;padding:3px 10px">在假(3)</span>
+            <span class="tag tag-gray" style="cursor:pointer;padding:3px 10px">超假(2)</span>
+            <span class="tag tag-gray" style="cursor:pointer;padding:3px 10px">预警(1)</span>
+          </div>
+          <!-- 学生列表 -->
+          <div class="card" style="padding:0">
+            <div onclick="cnlGo('cnl-stu-detail')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #f5f5f5;cursor:pointer">
+              <div style="width:36px;height:36px;border-radius:50%;background:#e6f7ff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">👦</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:#1f2329">张三 <span style="font-size:11px;color:#909399;font-weight:400">2022001</span></div>
+                <div style="font-size:11px;color:#909399;margin-top:2px">本学期请假3次 · 均分86.5 · <span style="color:#faad14">待销假</span></div>
+              </div>
+              <span style="color:#d9d9d9;font-size:16px">›</span>
+            </div>
+            <div onclick="cnlGo('cnl-stu-detail')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #f5f5f5;cursor:pointer">
+              <div style="width:36px;height:36px;border-radius:50%;background:#fff2f0;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">👦</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:#1f2329">李四 <span style="font-size:11px;color:#909399;font-weight:400">2022002</span></div>
+                <div style="font-size:11px;color:#909399;margin-top:2px">本学期请假1次 · 均分72.3 · <span style="color:#ff4d4f">超假2天</span></div>
+              </div>
+              <span style="color:#d9d9d9;font-size:16px">›</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #f5f5f5;cursor:pointer">
+              <div style="width:36px;height:36px;border-radius:50%;background:#f6ffed;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">👧</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:#1f2329">王丽 <span style="font-size:11px;color:#909399;font-weight:400">2022003</span></div>
+                <div style="font-size:11px;color:#909399;margin-top:2px">本学期未请假 · 均分91.2 · <span style="color:#52c41a">正常</span></div>
+              </div>
+              <span style="color:#d9d9d9;font-size:16px">›</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #f5f5f5;cursor:pointer">
+              <div style="width:36px;height:36px;border-radius:50%;background:#fff7e6;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">👦</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:#1f2329">王五 <span style="font-size:11px;color:#909399;font-weight:400">2022004</span></div>
+                <div style="font-size:11px;color:#909399;margin-top:2px">本学期请假2次 · 均分78.8 · <span style="color:#faad14">在假中</span></div>
+              </div>
+              <span style="color:#d9d9d9;font-size:16px">›</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer">
+              <div style="width:36px;height:36px;border-radius:50%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">👧</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:#1f2329">赵六 <span style="font-size:11px;color:#909399;font-weight:400">2022005</span></div>
+                <div style="font-size:11px;color:#909399;margin-top:2px">本学期未请假 · 均分83.6 · <span style="color:#52c41a">正常</span></div>
+              </div>
+              <span style="color:#d9d9d9;font-size:16px">›</span>
+            </div>
+          </div>
+          <div style="text-align:center;font-size:12px;color:#c0c4cc;padding:4px">· 已显示5人，共45人 · 上滑加载更多 ·</div>
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="cnlGo('cnl-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item" onclick="cnlGo('cnl-pending')"><div class="tab-icon-wrap">📋</div><div>待审批</div><div class="tab-badge">4</div></div><div class="tab-item active"><div class="tab-icon-wrap">👥</div><div>学生</div></div><div class="tab-item" onclick="cnlGo('cnl-alerts')"><div class="tab-icon-wrap">💬</div><div>通知</div><div class="tab-badge">2</div></div></div>
+      </div>
+
+      <!-- ══ C9: 学生详情 ══ -->
+      <div class="screen" id="cnl-stu-detail">
+        <div class="s-header counselor-header" style="display:flex;align-items:center;gap:10px">
+          <span style="cursor:pointer;font-size:18px" onclick="cnlGo('cnl-students')">←</span>
+          <div><h2>张三 · 档案</h2><p>2022001 · 计应2201</p></div>
+        </div>
+        <div class="s-content">
+          <!-- 基本信息 -->
+          <div class="card">
+            <div class="card-title">👤 基本信息</div>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:12px">
+              <span style="color:#909399">手机</span><span>138xxxx0001</span>
+              <span style="color:#909399">均分</span><span style="color:#1890ff;font-weight:600">86.5分（班级第8）</span>
+              <span style="color:#909399">综合素质</span><span>88.3分</span>
+              <span style="color:#909399">学籍状态</span><span style="color:#52c41a">正常</span>
+              <span style="color:#909399">资助情况</span><span>国家励志奖学金</span>
+            </div>
+          </div>
+          <!-- 请假记录 -->
+          <div class="card">
+            <h3>📅 本学期请假 <span style="font-size:11px;color:#909399;font-weight:400">共3次 · 5天</span></h3>
+            <div style="font-size:12px">
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f5f5f5">
+                <span>病假 · 1天 · 2024-11-11</span><span class="tag tag-orange">待销假</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f5f5f5">
+                <span>事假 · 2天 · 2024-10-18</span><span class="tag tag-red">已驳回</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0">
+                <span>病假 · 3天 · 2024-09-05</span><span class="tag tag-gray">已销假</span>
+              </div>
+            </div>
+          </div>
+          <!-- 奖惩记录 -->
+          <div class="card">
+            <div class="card-title">📜 奖惩记录</div>
+            <div style="font-size:12px">
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f5f5f5">
+                <span>优秀学生干部 · 2023-2024</span><span class="tag tag-green">奖励</span>
+              </div>
+              <div style="text-align:center;padding:8px;color:#52c41a;font-size:11px">✅ 无处分记录</div>
+            </div>
+          </div>
+
+        </div>
+        <div class="tab-bar"><div class="tab-item" onclick="cnlGo('cnl-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item" onclick="cnlGo('cnl-pending')"><div class="tab-icon-wrap">📋</div><div>待审批</div><div class="tab-badge">4</div></div><div class="tab-item active"><div class="tab-icon-wrap">👥</div><div>学生</div></div><div class="tab-item" onclick="cnlGo('cnl-alerts')"><div class="tab-icon-wrap">💬</div><div>通知</div><div class="tab-badge">2</div></div></div>
+      </div>
+
+
+
+
+      <!-- ══ C11: 班级总览 ══ -->
+      <div class="screen" id="cnl-class-overview">
+        <div class="s-header counselor-header" style="display:flex;align-items:center;gap:10px">
+          <span style="cursor:pointer;font-size:18px" onclick="cnlGo('cnl-home')">←</span>
+          <div><h2>我的班级</h2><p>张辅导员 · 共管理3个班级</p></div>
+        </div>
+        <div class="s-content">
+          <!-- 总体统计 -->
+          <div class="card">
+            <div class="card-title">📊 全部班级汇总</div>
+            <div class="stat-row">
+              <div class="stat-card"><div class="stat-num">128</div><div class="stat-label">学生总数</div></div>
+              <div class="stat-card" style="background:#fff7e6"><div class="stat-num" style="color:#fa8c16">7</div><div class="stat-label">合计待审批</div></div>
+              <div class="stat-card" style="background:#e6f7ff"><div class="stat-num" style="color:#1890ff">93%</div><div class="stat-label">综合出勤率</div></div>
+              <div class="stat-card" style="background:#fff2f0"><div class="stat-num" style="color:#ff4d4f">2</div><div class="stat-label">超假预警</div></div>
+            </div>
+          </div>
+
+          <!-- 计应2201 -->
+          <div class="card" style="border-left:3px solid #1890ff;cursor:pointer" onclick="switchClass(0)">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+              <div>
+                <div style="font-size:15px;font-weight:700;color:#1f2329">计应2201
+                  <span style="font-size:11px;background:#e6f7ff;color:#1890ff;border-radius:4px;padding:1px 6px;margin-left:6px;font-weight:400">当前</span>
+                </div>
+                <div style="font-size:12px;color:#909399;margin-top:3px">计算机应用技术 · 2022级</div>
+              </div>
+              <button class="btn-primary btn-sm" style="width:auto;padding:5px 12px" onclick="switchClass(0);cnlGo('cnl-home')">进入管理</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;text-align:center;font-size:11px">
+              <div style="background:#f5f8ff;border-radius:6px;padding:6px">
+                <div style="font-weight:700;color:#1890ff;font-size:14px">45</div><div style="color:#909399">学生</div>
+              </div>
+              <div style="background:#fff7e6;border-radius:6px;padding:6px">
+                <div style="font-weight:700;color:#fa8c16;font-size:14px">4</div><div style="color:#909399">待审批</div>
+              </div>
+              <div style="background:#f6ffed;border-radius:6px;padding:6px">
+                <div style="font-weight:700;color:#52c41a;font-size:14px">94%</div><div style="color:#909399">出勤率</div>
+              </div>
+              <div style="background:#fff2f0;border-radius:6px;padding:6px">
+                <div style="font-weight:700;color:#ff4d4f;font-size:14px">2</div><div style="color:#909399">超假</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 软技2201 -->
+          <div class="card" style="border-left:3px solid #722ed1;cursor:pointer" onclick="switchClass(1)">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+              <div>
+                <div style="font-size:15px;font-weight:700;color:#1f2329">软技2201</div>
+                <div style="font-size:12px;color:#909399;margin-top:3px">软件技术 · 2022级</div>
+              </div>
+              <button class="btn-default btn-sm" onclick="switchClass(1);cnlGo('cnl-home')">进入管理</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;text-align:center;font-size:11px">
+              <div style="background:#f9f0ff;border-radius:6px;padding:6px">
+                <div style="font-weight:700;color:#722ed1;font-size:14px">42</div><div style="color:#909399">学生</div>
+              </div>
+              <div style="background:#fff7e6;border-radius:6px;padding:6px">
+                <div style="font-weight:700;color:#fa8c16;font-size:14px">2</div><div style="color:#909399">待审批</div>
+              </div>
+              <div style="background:#f6ffed;border-radius:6px;padding:6px">
+                <div style="font-weight:700;color:#52c41a;font-size:14px">96%</div><div style="color:#909399">出勤率</div>
+              </div>
+              <div style="background:#f5f5f5;border-radius:6px;padding:6px">
+                <div style="font-weight:700;color:#8c8c8c;font-size:14px">0</div><div style="color:#909399">超假</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 会计2201 -->
+          <div class="card" style="border-left:3px solid #d46b08;cursor:pointer" onclick="switchClass(2)">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+              <div>
+                <div style="font-size:15px;font-weight:700;color:#1f2329">会计2201</div>
+                <div style="font-size:12px;color:#909399;margin-top:3px">会计 · 2022级</div>
+              </div>
+              <button class="btn-default btn-sm" onclick="switchClass(2);cnlGo('cnl-home')">进入管理</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;text-align:center;font-size:11px">
+              <div style="background:#fff7e6;border-radius:6px;padding:6px">
+                <div style="font-weight:700;color:#d46b08;font-size:14px">41</div><div style="color:#909399">学生</div>
+              </div>
+              <div style="background:#fff7e6;border-radius:6px;padding:6px">
+                <div style="font-weight:700;color:#fa8c16;font-size:14px">1</div><div style="color:#909399">待审批</div>
+              </div>
+              <div style="background:#f6ffed;border-radius:6px;padding:6px">
+                <div style="font-weight:700;color:#52c41a;font-size:14px">91%</div><div style="color:#909399">出勤率</div>
+              </div>
+              <div style="background:#f5f5f5;border-radius:6px;padding:6px">
+                <div style="font-weight:700;color:#8c8c8c;font-size:14px">0</div><div style="color:#909399">超假</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="tab-bar"><div class="tab-item active" onclick="cnlGo('cnl-home')"><div class="tab-icon-wrap">🏠</div><div>首页</div></div><div class="tab-item" onclick="cnlGo('cnl-pending')"><div class="tab-icon-wrap">📋</div><div>待审批</div><div class="tab-badge">7</div></div><div class="tab-item" onclick="cnlGo('cnl-students')"><div class="tab-icon-wrap">👥</div><div>学生</div></div><div class="tab-item" onclick="cnlGo('cnl-alerts')"><div class="tab-icon-wrap">💬</div><div>通知</div><div class="tab-badge">2</div></div></div>
+      </div>
+
+    </div><!-- /cnl phone-body -->
+  </div><!-- /cnl phone -->
+</div><!-- /cnl phone-wrap -->
+
+</div><!-- /stage -->
+
+<!-- 班级选择弹窗 -->
+<!-- ══ 备注弹窗 ══ -->
+<div id="remarkOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,31,68,.45);backdrop-filter:blur(3px);z-index:300;align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeRemarkModal()">
+  <div style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:400px;margin:0 auto;padding:20px 20px 32px">
+    <div style="width:40px;height:4px;background:#D0E4FF;border-radius:2px;margin:0 auto 18px"></div>
+    <!-- 标题 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="font-size:15px;font-weight:800;color:#0A1F44">📝 记录情况</div>
+      <span style="font-size:20px;color:#C0C4CC;cursor:pointer;line-height:1" onclick="closeRemarkModal()">×</span>
+    </div>
+    <!-- 学生信息条 -->
+    <div id="remarkStudentInfo" style="background:#F0F7FF;border-radius:10px;padding:10px 12px;margin:12px 0;font-size:12px;color:#3A5A8A">
+      <span id="remarkName" style="font-weight:700;color:#0A1F44"></span>
+      <span id="remarkId" style="margin:0 6px;color:#9BB8D4">·</span>
+      <span id="remarkDesc" style="color:#5B8DB8"></span>
+    </div>
+    <!-- 备注类型快选 -->
+    <div style="font-size:12px;color:#4A6A8A;margin-bottom:6px;font-weight:500">情况类型</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+      <span class="tag tag-orange" style="cursor:pointer;padding:4px 10px" onclick="appendRemark('已电话联系，无法接通')">📵 无法接通</span>
+      <span class="tag tag-blue" style="cursor:pointer;padding:4px 10px" onclick="appendRemark('已电话联系，学生表示即将返校')">📞 将返校</span>
+      <span class="tag tag-red" style="cursor:pointer;padding:4px 10px" onclick="appendRemark('学生表示需继续请假，建议补办手续')">📋 需补办手续</span>
+      <span class="tag tag-gray" style="cursor:pointer;padding:4px 10px" onclick="appendRemark('已联系家长告知情况')">👪 已联系家长</span>
+    </div>
+    <!-- 备注内容 -->
+    <div style="font-size:12px;color:#4A6A8A;margin-bottom:6px;font-weight:500">备注内容 <span style="color:#FF4D4F">*</span></div>
+    <textarea id="remarkContent" rows="4" placeholder="请输入跟进情况、处理措施等备注信息..." style="width:100%;border:1.5px solid #D0E4FF;border-radius:10px;padding:10px 12px;font-size:13px;outline:none;color:#0A1F44;background:#F8FBFF;resize:none;font-family:inherit;transition:.2s" onfocus="this.style.borderColor='#1677FF';this.style.boxShadow='0 0 0 3px rgba(22,119,255,.12)'" onblur="this.style.borderColor='#D0E4FF';this.style.boxShadow='none'"></textarea>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:#9BB8D4;margin-top:4px">
+      <span id="remarkTime" style="color:#C0C4CC"></span>
+      <span id="remarkCharCount">0 / 200字</span>
+    </div>
+    <!-- 操作按钮 -->
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:16px">
+      <button onclick="closeRemarkModal()" style="background:#fff;color:#1677FF;border:1.5px solid #D0E4FF;border-radius:10px;padding:11px;font-size:13px;cursor:pointer;font-weight:500">取消</button>
+      <button onclick="saveRemark()" style="background:linear-gradient(135deg,#1677FF,#0958D9);color:#fff;border:none;border-radius:10px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(22,119,255,.35)">✓ 保存记录</button>
+    </div>
+  </div>
+</div>
+
+<div id="classPickerOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:300;align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:400px;margin:0 auto;padding:20px;max-height:75vh;overflow-y:auto">
+    <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 16px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 style="font-size:15px;font-weight:700;color:#1f2329">选择班级</h3>
+      <span style="font-size:12px;color:#1890ff;cursor:pointer" onclick="cnlGo('cnl-class-overview');document.getElementById('classPickerOverlay').style.display='none'">查看全部班级 →</span>
+    </div>
+    <!-- 全部班级汇总 -->
+    <div style="background:#f5f8ff;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:12px;color:#606266">共管理 <strong style="color:#1890ff">3</strong> 个班级</div>
+        <div style="font-size:11px;color:#909399;margin-top:2px">合计 128 名学生</div>
+      </div>
+      <div style="font-size:11px;color:#909399;text-align:right">
+        <div>待审批合计 <strong style="color:#fa8c16">7</strong></div>
+        <div>超假预警 <strong style="color:#ff4d4f">2</strong></div>
+      </div>
+    </div>
+    <!-- 班级列表 -->
+    <div id="classPickerList"></div>
+  </div>
+</div>
+
+<!-- 编辑联系方式弹窗 -->
+<div id="editContactOverlay" class="overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div class="sheet" style="max-width:400px">
+    <div class="sheet-handle"></div>
+    <div class="card-title">✏️ 修改联系方式</div>
+    <div class="form-row">
+      <label>手机号 <span style="color:#ff4d4f">*</span></label>
+      <input type="tel" class="form-input" id="editPhone" value="138xxxx0001" placeholder="请输入手机号">
+    </div>
+    <div class="form-row">
+      <label>邮箱</label>
+      <input type="email" class="form-input" id="editEmail" value="zhangsan@edu.cn" placeholder="请输入邮箱">
+    </div>
+    <div class="form-row">
+      <label>紧急联系人</label>
+      <input type="text" class="form-input" value="张父（父亲）" placeholder="姓名（关系）">
+    </div>
+    <div class="form-row">
+      <label>紧急联系电话</label>
+      <input type="tel" class="form-input" value="139xxxx0002">
+    </div>
+    <button class="btn-primary" onclick="saveContact()">保存修改</button>
+    <button class="btn-default" style="width:100%;margin-top:8px" onclick="document.getElementById('editContactOverlay').style.display='none'">取消</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);color:#fff;padding:8px 18px;border-radius:20px;font-size:13px;z-index:999;pointer-events:none;transition:.2s"></div>
+
+<script>
+// ── 角色切换 ──
+var currentRole = 'student';
+function switchRole(role) {
+  currentRole = role;
+  document.getElementById('roleTabStu').className = 'role-tab' + (role==='student' ? ' active' : '');
+  document.getElementById('roleTabCnl').className = 'role-tab' + (role==='counselor' ? ' active' : '');
+  document.getElementById('phoneStu').style.display = role==='student' ? '' : 'none';
+  document.getElementById('phoneCnl').style.display = role==='counselor' ? '' : 'none';
+  document.getElementById('roleHint').textContent = role==='student' ? '张三 · 计应2201 · 2022001' : '张辅导员 · 计算机学院 · 计应2201辅导员';
+}
+
+// ── 学生端导航 ──
+function stuGo(screenId) {
+  document.querySelectorAll('#stuPhoneBody .screen').forEach(function(s){ s.classList.remove('active'); });
+  var el = document.getElementById(screenId);
+  if(el) { el.classList.add('active'); el.scrollTop = 0; }
+}
+
+// ── 辅导员端导航 ──
+function cnlGo(screenId) {
+  document.querySelectorAll('#cnlPhoneBody .screen').forEach(function(s){ s.classList.remove('active'); });
+  var el = document.getElementById(screenId);
+  if(el) { el.classList.add('active'); el.scrollTop = 0; }
+}
+
+// ── 学生：提交成功 ──
+function stuShowSubmitSuccess() {
+  stuGo('stu-leave-success');
+}
+
+// ── 学生：销假弹出（快捷） ──
+function stuShowXiaoJia(e) {
+  e.stopPropagation();
+  stuGo('stu-leave-detail');
+}
+
+// ── 学生：销假成功 ──
+function stuShowXiaoJiaSuccess() {
+  showToast('销假登记成功！');
+  setTimeout(function(){ stuGo('stu-leave-list'); }, 1000);
+}
+
+// ── 班级数据 ──
+var CLASS_DATA = [
+  {
+    name:'计应2201', major:'计算机应用技术', grade:'2022级',
+    stuCount:45, pending:4, alertCount:2, attend:'94.2%', leaveRate:'18.2%',
+    color:'#1890ff', bgColor:'#e6f7ff'
+  },
+  {
+    name:'软技2201', major:'软件技术', grade:'2022级',
+    stuCount:42, pending:2, alertCount:0, attend:'96.1%', leaveRate:'11.5%',
+    color:'#722ed1', bgColor:'#f9f0ff'
+  },
+  {
+    name:'会计2201', major:'会计', grade:'2022级',
+    stuCount:41, pending:1, alertCount:0, attend:'91.3%', leaveRate:'14.8%',
+    color:'#d46b08', bgColor:'#fff7e6'
+  }
+];
+var currentClassIdx = 0;
+
+// 渲染班级选择器列表
+function renderClassPicker() {
+  var list = document.getElementById('classPickerList');
+  if(!list) return;
+  list.innerHTML = CLASS_DATA.map(function(c, i){
+    var isActive = i === currentClassIdx;
+    return '<div onclick="switchClass('+i+');document.getElementById(\'classPickerOverlay\').style.display=\'none\'" '
+      +'style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;margin-bottom:8px;'
+      +'border:2px solid '+(isActive?c.color:'#f0f0f0')+';background:'+(isActive?c.bgColor:'#fff')+'">'
+      +'<div style="width:40px;height:40px;border-radius:10px;background:'+c.color+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🏫</div>'
+      +'<div style="flex:1">'
+        +'<div style="font-size:13px;font-weight:700;color:#1f2329">'+c.name+(isActive?' <span style="font-size:10px;color:'+c.color+';font-weight:400">当前</span>':'')+'</div>'
+        +'<div style="font-size:11px;color:#909399;margin-top:2px">'+c.major+' · '+c.grade+' · '+c.stuCount+'人</div>'
+        +'<div style="display:flex;gap:10px;margin-top:4px;font-size:11px">'
+          +'<span style="color:#fa8c16">待审批 '+c.pending+'</span>'
+          +'<span style="color:#52c41a">出勤 '+c.attend+'</span>'
+          +(c.alertCount?'<span style="color:#ff4d4f">超假 '+c.alertCount+'</span>':'')
+        +'</div>'
+      +'</div>'
+      +(isActive?'<span style="color:'+c.color+';font-size:18px">✓</span>':'<span style="color:#d9d9d9;font-size:16px">›</span>')
+      +'</div>';
+  }).join('');
+}
+
+// ── 备注弹窗 ──────────────────────────────────────────────────
+var _remarkTargetId = null;
+var _remarkStudentXh = null;
+
+function openRemarkModal(name, xh, desc, targetActionsId) {
+  _remarkTargetId = targetActionsId || null;
+  _remarkStudentXh = xh;
+  document.getElementById('remarkName').textContent = name;
+  document.getElementById('remarkId').textContent = xh;
+  document.getElementById('remarkDesc').textContent = desc;
+  document.getElementById('remarkContent').value = '';
+  document.getElementById('remarkContent').style.borderColor = '#D0E4FF';
+  document.getElementById('remarkCharCount').textContent = '0 / 200字';
+  var now = new Date();
+  document.getElementById('remarkTime').textContent =
+    now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' +
+    String(now.getDate()).padStart(2,'0') + ' ' +
+    String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('remarkOverlay').style.display = 'flex';
+  setTimeout(function(){ document.getElementById('remarkContent').focus(); }, 300);
+  document.getElementById('remarkContent').oninput = function() {
+    var len = this.value.length;
+    document.getElementById('remarkCharCount').textContent = len + ' / 200字';
+    if (len > 200) this.value = this.value.slice(0, 200);
+  };
+}
+
+function appendRemark(text) {
+  var ta = document.getElementById('remarkContent');
+  ta.value = ta.value ? ta.value + '\n' + text : text;
+  document.getElementById('remarkCharCount').textContent = ta.value.length + ' / 200字';
+}
+
+function closeRemarkModal() {
+  document.getElementById('remarkOverlay').style.display = 'none';
+}
+
+function saveRemark() {
+  var content = document.getElementById('remarkContent').value.trim();
+  if (!content) {
+    document.getElementById('remarkContent').style.borderColor = '#FF4D4F';
+    document.getElementById('remarkContent').placeholder = '请填写备注内容后再保存';
+    return;
+  }
+  var now = new Date();
+  var timeStr = now.getFullYear() + '-' +
+    String(now.getMonth()+1).padStart(2,'0') + '-' +
+    String(now.getDate()).padStart(2,'0') + ' ' +
+    String(now.getHours()).padStart(2,'0') + ':' +
+    String(now.getMinutes()).padStart(2,'0');
+
+  // 回显到对应卡片
+  if (_remarkTargetId) {
+    var actionsEl = document.getElementById(_remarkTargetId);
+    if (actionsEl) {
+      // 把"记录情况"按钮改为"已记录"状态
+      var btn = document.getElementById('remarkBtn_' + _remarkStudentXh);
+      if (btn) {
+        btn.textContent = '✅ 已记录';
+        btn.style.color = '#389E0D';
+        btn.style.borderColor = '#B7EB8F';
+        btn.style.background = '#F6FFED';
+        btn.onclick = null;
+      }
+      // 在 actions 下方插入备注回显区
+      var existing = document.getElementById('remarkEcho_' + _remarkStudentXh);
+      if (existing) existing.remove();
+      var echo = document.createElement('div');
+      echo.id = 'remarkEcho_' + _remarkStudentXh;
+      echo.style.cssText = 'margin-top:10px;padding:10px 12px;background:#F0F7FF;border-radius:10px;border-left:3px solid #1677FF;font-size:12px;';
+      echo.innerHTML =
+        '<div style="color:#1677FF;font-weight:700;margin-bottom:4px">📝 已记录情况</div>' +
+        '<div style="color:#0A1F44;line-height:1.7;white-space:pre-wrap">' + content + '</div>' +
+        '<div style="color:#9BB8D4;margin-top:6px;font-size:11px">' + timeStr + ' · 张辅导员</div>';
+      actionsEl.parentNode.insertBefore(echo, actionsEl.nextSibling);
+    }
+  }
+
+  closeRemarkModal();
+  showToast('✅ 情况已记录');
+}
+
+function showClassPicker() {
+  renderClassPicker();
+  document.getElementById('classPickerOverlay').style.display = 'flex';
+}
+
+// 切换班级并刷新所有动态数据
+function switchClass(idx) {
+  currentClassIdx = idx;
+  var c = CLASS_DATA[idx];
+  // 更新首页
+  var el;
+  el = document.getElementById('curClassName'); if(el) el.textContent = c.name;
+  el = document.getElementById('kpiStuCount'); if(el) el.textContent = c.stuCount;
+  el = document.getElementById('kpiPending');  if(el) el.textContent = c.pending;
+  el = document.getElementById('kpiAlert');    if(el) el.textContent = c.alertCount || '0';
+  el = document.getElementById('kpiAttend');   if(el) el.textContent = c.attend;
+  // 更新数据看板卡片
+  var cards = document.querySelectorAll('#cnl-home .stat-num');
+  if(cards.length>=4){
+    cards[0].textContent = c.pending;
+    cards[2].textContent = c.attend;
+    cards[3].textContent = c.alertCount||'0';
+  }
+  // 更新学生列表副标题
+  el = document.getElementById('stuListSubtitle'); if(el) el.textContent = c.name+' · 共'+c.stuCount+'人';
+  // 更新出勤统计副标题
+  el = // (已移除) // document.getElementById('attendSubtitle'); if(el) el.textContent = c.name+' · 本学期';
+  // 更新首页KPI出勤率
+  el = document.getElementById('kpiAttend'); if(el) el.textContent = c.attend;
+  showToast('已切换至 '+c.name);
+}
+
+// ── 辅导员：快速批准/驳回（列表页） ──
+function cnlQuickApprove(e, name) {
+  e.stopPropagation();
+  document.getElementById('cnlApproveIcon').textContent = '✅';
+  document.getElementById('cnlApproveTitle').textContent = '已批准 · ' + name;
+  document.getElementById('cnlApproveMsg').textContent = '已批准' + name + '的请假申请，系统将自动通知学生。';
+  cnlGo('cnl-approve-done');
+}
+
+function cnlQuickReject(e, name) {
+  e.stopPropagation();
+  document.getElementById('cnlApproveIcon').textContent = '❌';
+  document.getElementById('cnlApproveTitle').textContent = '已驳回 · ' + name;
+  document.getElementById('cnlApproveMsg').textContent = '已驳回' + name + '的请假申请，学生将收到驳回通知。';
+  cnlGo('cnl-approve-done');
+}
+
+function cnlApproveWithAnim() {
+  document.getElementById('cnlApproveIcon').textContent = '✅';
+  document.getElementById('cnlApproveTitle').textContent = '审批通过';
+  document.getElementById('cnlApproveMsg').textContent = '请假申请已批准，学生将收到消息通知。';
+  cnlGo('cnl-approve-done');
+}
+
+function cnlRejectWithAnim() {
+  document.getElementById('cnlApproveIcon').textContent = '❌';
+  document.getElementById('cnlApproveTitle').textContent = '审批驳回';
+  document.getElementById('cnlApproveMsg').textContent = '已驳回该请假申请，学生将收到驳回通知，可修改后重新提交。';
+  cnlGo('cnl-approve-done');
+}
+
+// ── 学生：撤回申请 ──
+function stuWithdraw() {
+  if(confirm('确认撤回该请假申请？撤回后需重新提交。')) {
+    showToast('申请已撤回');
+    setTimeout(function(){ stuGo('stu-leave-list'); }, 800);
+  }
+}
+
+// ── 资助申请提交 ──
+function stuAidSubmit() {
+  showToast('贫困认定申请已提交，辅导员将在2个工作日内核查');
+  setTimeout(function(){ stuGo('stu-aid-progress'); }, 1200);
+}
+
+// ── 奖学金申请提交 ──
+function stuAwardSubmit() {
+  showToast('奖学金申请已提交，已通知辅导员推荐审批');
+  setTimeout(function(){ stuGo('stu-award-result'); }, 1200);
+}
+
+// ── 保存联系方式 ──
+function saveContact() {
+  var phone = document.getElementById('editPhone').value;
+  var email = document.getElementById('editEmail').value;
+  if(document.getElementById('profilePhone')) document.getElementById('profilePhone').textContent = phone;
+  if(document.getElementById('profileEmail')) document.getElementById('profileEmail').textContent = email;
+  document.getElementById('editContactOverlay').style.display = 'none';
+  showToast('联系方式已更新');
+}
+
+// ── Toast ──
+var _toastTimer;
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  t.style.opacity = '1';
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function(){
+    t.style.opacity = '0';
+    setTimeout(function(){ t.style.display = 'none'; }, 300);
+  }, 2000);
+}
+</script>
+</body>
+</html>
