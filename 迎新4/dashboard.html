@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>保定职业技术学院 · 2024级迎新实时大屏</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  width:100%; height:100%; overflow:hidden;
+  background:#040D1A;
+  font-family:'PingFang SC','Microsoft YaHei',sans-serif;
+  color:#E8F4FF;
+}
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(rgba(22,119,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22,119,255,0.04) 1px, transparent 1px);
+  background-size:48px 48px;
+}
+
+/* ── 顶部 ── */
+#header {
+  position:relative; z-index:10; height:64px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 24px;
+  background:linear-gradient(90deg,rgba(4,13,26,0.95) 0%,rgba(6,22,50,0.9) 50%,rgba(4,13,26,0.95) 100%);
+  border-bottom:1px solid rgba(22,119,255,0.3);
+}
+#header::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent, #1677FF, #00D4FF, #1677FF, transparent);
+}
+.header-logo { display:flex; align-items:center; gap:12px; }
+.header-logo .badge {
+  width:40px; height:40px; border-radius:50%;
+  background:linear-gradient(135deg,#1677FF,#00D4FF);
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; box-shadow:0 0 16px rgba(22,119,255,0.5);
+}
+.header-logo h1 {
+  font-size:20px; font-weight:700; letter-spacing:2px;
+  background:linear-gradient(90deg,#fff,#91CAFF);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.header-logo p { font-size:12px; color:#6B9FCC; margin-top:1px; letter-spacing:1px; }
+.header-center {
+  position:absolute; left:50%; transform:translateX(-50%); text-align:center;
+}
+.header-center .main-title {
+  font-size:26px; font-weight:800; letter-spacing:6px;
+  background:linear-gradient(90deg,#91CAFF,#fff,#00D4FF);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.header-center .sub-title { font-size:12px; color:#5B90B8; letter-spacing:3px; margin-top:2px; }
+.header-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+#live-time { font-size:22px; font-weight:700; color:#00D4FF; font-variant-numeric:tabular-nums; letter-spacing:2px; }
+#live-date { font-size:12px; color:#5B90B8; letter-spacing:1px; }
+.live-dot { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:#52C41A; }
+.live-dot::before {
+  content:''; width:7px; height:7px; border-radius:50%;
+  background:#52C41A; animation:blink 1.4s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+/* ── 主体网格 ── */
+#main {
+  position:relative; z-index:1;
+  width:100%; height:calc(100vh - 64px - 28px);
+  display:grid;
+  grid-template-columns: 340px 1fr 1fr 320px;
+  grid-template-rows: 1fr 1fr;
+  gap:10px; padding:10px;
+}
+
+/* ── 面板 ── */
+.panel {
+  background:linear-gradient(135deg, rgba(6,22,50,0.85) 0%, rgba(4,13,26,0.9) 100%);
+  border:1px solid rgba(22,119,255,0.2); border-radius:10px;
+  overflow:hidden; position:relative; backdrop-filter:blur(8px);
+  display:flex; flex-direction:column;
+}
+.panel::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, transparent, #1677FF 30%, #00D4FF 70%, transparent);
+}
+.panel-title {
+  padding:10px 14px 8px;
+  font-size:13px; font-weight:600; letter-spacing:1px; color:#91CAFF;
+  display:flex; align-items:center; gap:8px;
+  border-bottom:1px solid rgba(22,119,255,0.12); flex-shrink:0;
+}
+.panel-title i { color:#1677FF; font-size:14px; }
+.panel-title .tag {
+  margin-left:auto; font-size:10px; padding:2px 8px;
+  border-radius:3px; background:rgba(22,119,255,0.15); color:#91CAFF; letter-spacing:1px;
+}
+.panel-body { flex:1; overflow:hidden; padding:10px 12px; }
+.panel-body.no-pad { padding:0; }
+.panel-body.scroll { overflow-y:auto; }
+
+/* grid 位置 */
+#panel-stats  { grid-column:1; grid-row:1; }
+#panel-rank   { grid-column:1; grid-row:2; }
+#panel-mapHB  { grid-column:2; grid-row:1 / span 2; }
+#panel-mapCN  { grid-column:3; grid-row:1 / span 2; }
+#panel-charts { grid-column:4; grid-row:1; }
+#panel-banner { grid-column:4; grid-row:2; }
+
+/* ── KPI ── */
+.kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+.kpi-card {
+  background:rgba(22,119,255,0.08);
+  border:1px solid rgba(22,119,255,0.18); border-radius:8px; padding:10px 12px;
+  position:relative; overflow:hidden;
+}
+.kpi-card::after {
+  content:''; position:absolute; right:-10px; bottom:-10px;
+  width:50px; height:50px; border-radius:50%;
+  background:radial-gradient(circle, rgba(22,119,255,0.15), transparent 70%);
+}
+.kpi-label { font-size:11px; color:#5B90B8; letter-spacing:1px; margin-bottom:5px; }
+.kpi-value { font-size:26px; font-weight:800; line-height:1; }
+.kpi-sub { font-size:11px; margin-top:4px; }
+.color-blue { color:#1677FF; } .color-cyan { color:#00D4FF; }
+.color-green { color:#52C41A; } .color-orange { color:#FA8C16; }
+.color-pink { color:#EB2F96; }
+
+.progress-row { margin-bottom:8px; }
+.progress-label { display:flex; justify-content:space-between; font-size:11px; color:#5B90B8; margin-bottom:3px; }
+.progress-bar { height:5px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:3px; transition:width 1s ease; }
+
+/* ── 院系排行 ── */
+.rank-row {
+  display:flex; align-items:center; gap:7px;
+  padding:7px 0; border-bottom:1px solid rgba(22,119,255,0.08);
+}
+.rank-row:last-child { border-bottom:none; }
+.rank-no {
+  width:20px; height:20px; border-radius:4px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;
+}
+.rank-name { flex:1; font-size:12px; color:#C8DFEF; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rank-bar-wrap { width:80px; height:4px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden; }
+.rank-bar-fill { height:100%; border-radius:3px; }
+.rank-val { width:34px; text-align:right; font-size:12px; font-weight:700; color:#00D4FF; }
+.rank-pct { width:40px; text-align:right; font-size:11px; color:#5B90B8; }
+
+/* ── 图表容器 ── */
+.chart-wrap { width:100%; height:100%; }
+
+/* ── 轮播 ── */
+#carousel-area { flex:1; overflow:hidden; position:relative; }
+.carousel-slide {
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  transition:opacity 0.7s ease, transform 0.7s ease;
+}
+.carousel-slide.active { opacity:1; transform:translateX(0); z-index:2; }
+.carousel-slide.hidden  { opacity:0; z-index:0; }
+.slide-content {
+  width:calc(100% - 16px); height:calc(100% - 12px);
+  padding:12px 14px; border-radius:8px;
+  display:flex; flex-direction:column;
+}
+.carousel-dots {
+  position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+  display:flex; gap:5px; z-index:10;
+}
+.carousel-dot {
+  width:5px; height:5px; border-radius:3px;
+  background:rgba(22,119,255,0.3); transition:all 0.3s; cursor:pointer;
+}
+.carousel-dot.active { width:16px; background:#1677FF; }
+.carousel-ctrl {
+  position:absolute; top:50%; transform:translateY(-50%); z-index:10;
+  width:24px; height:24px; border-radius:50%;
+  background:rgba(22,119,255,0.2); border:1px solid rgba(22,119,255,0.3);
+  color:#91CAFF; font-size:9px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:all 0.2s;
+}
+.carousel-ctrl:hover { background:rgba(22,119,255,0.4); }
+.carousel-ctrl.prev { left:6px; }
+.carousel-ctrl.next { right:6px; }
+
+/* ── 通知栏 ── */
+#ticker {
+  position:fixed; bottom:0; left:0; right:0; z-index:20;
+  height:28px; background:rgba(4,13,26,0.97);
+  border-top:1px solid rgba(22,119,255,0.2);
+  display:flex; align-items:center; overflow:hidden;
+}
+.ticker-label {
+  flex-shrink:0; padding:0 14px;
+  background:linear-gradient(90deg,#1677FF,#0958D9);
+  height:100%; display:flex; align-items:center;
+  font-size:11px; font-weight:600; letter-spacing:1px; color:white;
+  clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 100%, 0 100%);
+  padding-right:20px;
+}
+.ticker-track { flex:1; white-space:nowrap; overflow:hidden; }
+.ticker-inner {
+  display:inline-block;
+  animation:ticker-scroll 50s linear infinite;
+  font-size:12px; color:#91CAFF; padding-left:24px;
+}
+@keyframes ticker-scroll { 0%{ transform:translateX(0); } 100%{ transform:translateX(-50%); } }
+
+/* ── 扫光 ── */
+@keyframes scanline { 0%{ top:-4%; } 100%{ top:104%; } }
+.scanline {
+  position:absolute; left:0; right:0; height:2px; pointer-events:none; z-index:3;
+  background:linear-gradient(90deg,transparent,rgba(0,212,255,0.35),transparent);
+  animation:scanline 5s linear infinite;
+}
+
+/* ── 数字动画 ── */
+@keyframes numUp { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+.num-animate { animation:numUp 0.5s ease both; }
+
+/* ── 模态弹窗 ── */
+.modal-mask {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.72); z-index:2000;
+  backdrop-filter:blur(5px);
+  align-items:center; justify-content:center;
+}
+.modal-mask.open { display:flex; }
+.modal-box {
+  background:#06163A; border:1px solid rgba(22,119,255,0.35);
+  border-radius:12px; overflow:hidden;
+  display:flex; flex-direction:column;
+  box-shadow:0 0 60px rgba(22,119,255,0.25);
+}
+.modal-head {
+  padding:16px 20px 12px;
+  border-bottom:1px solid rgba(22,119,255,0.18);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.modal-head-title { font-size:15px; font-weight:700; color:#E8F4FF; letter-spacing:1px; }
+.modal-head-sub { font-size:12px; color:#5B90B8; margin-top:3px; }
+.modal-close {
+  width:30px; height:30px; border-radius:50%;
+  background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
+  color:#91CAFF; cursor:pointer; font-size:13px;
+  display:flex; align-items:center; justify-content:center;
+}
+.modal-body { flex:1; overflow-y:auto; padding:14px 20px; }
+.modal-foot {
+  padding:10px 20px; border-top:1px solid rgba(22,119,255,0.18);
+  display:flex; gap:8px; justify-content:flex-end;
+}
+.btn-primary {
+  padding:8px 22px; background:#1677FF; border:none;
+  border-radius:6px; color:white; font-size:13px; cursor:pointer; font-weight:600;
+}
+.btn-default {
+  padding:8px 16px; background:rgba(22,119,255,0.12);
+  border:1px solid rgba(22,119,255,0.3); border-radius:6px;
+  color:#91CAFF; font-size:13px; cursor:pointer;
+}
+.btn-danger {
+  padding:6px 12px; background:rgba(255,77,79,0.1);
+  border:1px solid rgba(255,77,79,0.25); border-radius:4px;
+  color:#FF7875; font-size:11px; cursor:pointer;
+}
+
+/* ── 轮播管理表单 ── */
+.banner-item {
+  background:rgba(22,119,255,0.06);
+  border:1px solid rgba(22,119,255,0.18);
+  border-radius:8px; padding:12px 14px; margin-bottom:8px;
+}
+.banner-item-head {
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;
+}
+.banner-form-field { margin-bottom:8px; }
+.banner-form-field label {
+  display:block; font-size:11px; color:#5B90B8; margin-bottom:4px;
+}
+.banner-form-field input,
+.banner-form-field textarea,
+.banner-form-field select {
+  width:100%; padding:7px 10px;
+  background:rgba(255,255,255,0.05); border:1px solid rgba(22,119,255,0.25);
+  border-radius:5px; color:#E8F4FF; font-size:12px;
+  font-family:inherit; outline:none; transition:border 0.2s;
+}
+.banner-form-field input:focus,
+.banner-form-field textarea:focus,
+.banner-form-field select:focus { border-color:#1677FF; }
+.banner-form-field textarea { resize:vertical; min-height:64px; }
+.banner-form-field select option { background:#06163A; }
+.add-banner-btn {
+  width:100%; padding:10px; margin-top:4px;
+  background:rgba(22,119,255,0.1);
+  border:1px dashed rgba(22,119,255,0.35);
+  border-radius:6px; color:#91CAFF; font-size:13px; cursor:pointer;
+  transition:background 0.2s;
+}
+.add-banner-btn:hover { background:rgba(22,119,255,0.2); }
+</style>
+</head>
+<body>
+
+<!-- ═══ 顶部 ═══ -->
+<header id="header">
+  <div class="header-logo">
+    <div class="badge">🎓</div>
+    <div>
+      <h1>保定职业技术学院</h1>
+      <p>BAODING VOCATIONAL &amp; TECHNICAL COLLEGE</p>
+    </div>
+  </div>
+  <div class="header-center">
+    <div class="main-title">2024级新生迎新实时大屏</div>
+    <div class="sub-title">NEW STUDENT REGISTRATION LIVE DASHBOARD</div>
+  </div>
+  <div class="header-right">
+    <div id="live-time">00:00:00</div>
+    <div id="live-date">----年--月--日 星期-</div>
+    <div class="live-dot">实时更新</div>
+  </div>
+</header>
+
+<!-- ═══ 主体网格 ═══ -->
+<main id="main">
+
+  <!-- ★ 左上：实时报到数据 -->
+  <section class="panel" id="panel-stats">
+    <div class="panel-title"><i class="fas fa-chart-line"></i>实时报到数据 <span class="tag">LIVE</span></div>
+    <div class="panel-body scroll">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">总报到人数</div>
+          <div class="kpi-value color-cyan" id="kpi-total">2,203</div>
+          <div class="kpi-sub color-green"><i class="fas fa-arrow-up"></i> 今日新增 <strong id="kpi-today">127</strong> 人</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">报到率</div>
+          <div class="kpi-value color-green" id="kpi-rate">89.9%</div>
+          <div class="kpi-sub" style="color:#5B90B8;">录取总数 2,450 人</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">已缴费人数</div>
+          <div class="kpi-value color-blue" id="kpi-paid">2,156</div>
+          <div class="kpi-sub" style="color:#5B90B8;">缴费率 <span style="color:#FA8C16;" id="kpi-paid-rate">88.0%</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">未报到人数</div>
+          <div class="kpi-value color-orange" id="kpi-missing">247</div>
+          <div class="kpi-sub" style="color:#5B90B8;">较昨日 <span style="color:#52C41A;">↓38</span></div>
+        </div>
+      </div>
+
+      <!-- 性别比 -->
+      <div class="progress-row">
+        <div class="progress-label">
+          <span><i class="fas fa-mars" style="color:#1677FF;"></i> 男生 <span id="stat-male">1,240</span> 人</span>
+          <span style="color:#1677FF;" id="stat-male-pct">56.3%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="bar-male" style="width:56.3%;background:linear-gradient(90deg,#1677FF,#00D4FF);"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-label">
+          <span><i class="fas fa-venus" style="color:#EB2F96;"></i> 女生 <span id="stat-female">963</span> 人</span>
+          <span style="color:#EB2F96;" id="stat-female-pct">43.7%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="bar-female" style="width:43.7%;background:linear-gradient(90deg,#EB2F96,#FF85C2);"></div></div>
+      </div>
+
+      <!-- 今日趋势 -->
+      <div style="margin-top:10px;">
+        <div style="font-size:11px;color:#5B90B8;letter-spacing:1px;margin-bottom:5px;">今日报到趋势（每小时）</div>
+        <div id="chart-trend" style="height:66px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ★ 左下：院系排行 -->
+  <section class="panel" id="panel-rank">
+    <div class="panel-title"><i class="fas fa-trophy"></i>院系报到排行</div>
+    <div class="panel-body">
+      <div id="rank-list"></div>
+    </div>
+  </section>
+
+  <!-- ★ 中左：河北迁徙图 -->
+  <section class="panel" id="panel-mapHB">
+    <div class="panel-title"><i class="fas fa-map-marked-alt"></i>河北省内生源分布 <span class="tag">迁徙图</span></div>
+    <div class="panel-body no-pad" style="position:relative;">
+      <div class="scanline"></div>
+      <div id="map-hebei" class="chart-wrap"></div>
+    </div>
+  </section>
+
+  <!-- ★ 中右：全国迁徙图 -->
+  <section class="panel" id="panel-mapCN">
+    <div class="panel-title"><i class="fas fa-globe-asia"></i>全国生源分布 <span class="tag">迁徙图</span></div>
+    <div class="panel-body no-pad" style="position:relative;">
+      <div class="scanline" style="animation-delay:-2.5s;"></div>
+      <div id="map-china" class="chart-wrap"></div>
+    </div>
+  </section>
+
+  <!-- ★ 右上：分布图 -->
+  <section class="panel" id="panel-charts">
+    <div class="panel-title"><i class="fas fa-chart-pie"></i>新生数据分布</div>
+    <div class="panel-body no-pad" style="display:flex;flex-direction:column;">
+      <div id="chart-dept" style="flex:1;min-height:0;"></div>
+      <div id="chart-gender-pie" style="height:120px;flex-shrink:0;"></div>
+    </div>
+  </section>
+
+  <!-- ★ 右下：轮播图 -->
+  <section class="panel" id="panel-banner">
+    <div class="panel-title">
+      <i class="fas fa-images"></i>迎新公告
+      <span class="tag">轮播</span>
+      <button onclick="openBannerManager()" style="margin-left:8px;padding:2px 9px;background:rgba(22,119,255,0.15);border:1px solid rgba(22,119,255,0.3);border-radius:4px;color:#91CAFF;font-size:11px;cursor:pointer;">
+        <i class="fas fa-cog"></i> 管理
+      </button>
+    </div>
+    <div id="carousel-area">
+      <div id="carousel-container"></div>
+      <button class="carousel-ctrl prev" onclick="carouselPrev()"><i class="fas fa-chevron-left"></i></button>
+      <button class="carousel-ctrl next" onclick="carouselNext()"><i class="fas fa-chevron-right"></i></button>
+      <div class="carousel-dots" id="carousel-dots"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══ 通知栏 ═══ -->
+<div id="ticker">
+  <div class="ticker-label">📢 动态</div>
+  <div class="ticker-track">
+    <div class="ticker-inner" id="ticker-inner">
+      【报到提醒】南校区报到处设在图书馆广场，请凭报到凭证二维码到现场核验 &nbsp;&nbsp;&nbsp;
+      【缴费通知】张家口银行缴费通道已开启，建议提前在线缴费避免现场排队 &nbsp;&nbsp;&nbsp;
+      【宿舍提示】宿舍分配已完成，请在系统中查看宿舍信息并在线选床位 &nbsp;&nbsp;&nbsp;
+      【接站服务】8月31日至9月2日，保定站、保定东站均设有免费接站点，接站时间 7:00-20:00 &nbsp;&nbsp;&nbsp;
+      【一卡通办理】现场报到完成后请前往F101办理校园一卡通，工作时间 8:30-17:30 &nbsp;&nbsp;&nbsp;
+      【报到提醒】南校区报到处设在图书馆广场，请凭报到凭证二维码到现场核验 &nbsp;&nbsp;&nbsp;
+      【缴费通知】张家口银行缴费通道已开启，建议提前在线缴费避免现场排队 &nbsp;&nbsp;&nbsp;
+      【宿舍提示】宿舍分配已完成，请在系统中查看宿舍信息并在线选床位 &nbsp;&nbsp;&nbsp;
+      【接站服务】8月31日至9月2日，保定站、保定东站均设有免费接站点，接站时间 7:00-20:00 &nbsp;&nbsp;&nbsp;
+      【一卡通办理】现场报到完成后请前往F101办理校园一卡通，工作时间 8:30-17:30
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 轮播管理弹窗 ═══ -->
+<div class="modal-mask" id="banner-modal">
+  <div class="modal-box" style="width:660px;max-height:82vh;">
+    <div class="modal-head">
+      <div>
+        <div class="modal-head-title"><i class="fas fa-images" style="color:#1677FF;margin-right:8px;"></i>轮播图管理</div>
+        <div class="modal-head-sub">管理大屏右下角轮播内容，支持公告、通知、图片链接</div>
+      </div>
+      <button class="modal-close" onclick="closeBannerManager()">✕</button>
+    </div>
+    <div class="modal-body" id="banner-manager-list"></div>
+    <div class="modal-foot">
+      <button class="btn-default" onclick="addBannerItem()"><i class="fas fa-plus"></i> 添加轮播</button>
+      <button class="btn-primary" onclick="closeBannerManager()">完成</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 轮播编辑弹窗 ═══ -->
+<div class="modal-mask" id="banner-edit-modal">
+  <div class="modal-box" style="width:520px;">
+    <div class="modal-head">
+      <div>
+        <div class="modal-head-title" id="banner-edit-title">编辑轮播</div>
+        <div class="modal-head-sub">填写轮播展示内容</div>
+      </div>
+      <button class="modal-close" onclick="closeBannerEdit()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="banner-form-field">
+        <label>标题（支持 emoji）</label>
+        <input type="text" id="edit-banner-title" placeholder="📢 2024级新生报到须知" maxlength="30" />
+      </div>
+      <div class="banner-form-field">
+        <label>类型</label>
+        <select id="edit-banner-type">
+          <option value="notice">公告/通知</option>
+          <option value="stats">实时数据</option>
+          <option value="image">图片链接</option>
+        </select>
+      </div>
+      <div class="banner-form-field" id="edit-content-wrap">
+        <label>内容</label>
+        <textarea id="edit-banner-content" placeholder="请填写通知内容…"></textarea>
+      </div>
+      <div class="banner-form-field" id="edit-image-wrap" style="display:none;">
+        <label>图片 URL</label>
+        <input type="text" id="edit-banner-image" placeholder="https://example.com/image.jpg" />
+      </div>
+      <div class="banner-form-field">
+        <label>主题色</label>
+        <select id="edit-banner-color">
+          <option value="blue">蓝色</option>
+          <option value="green">绿色</option>
+          <option value="orange">橙色</option>
+          <option value="pink">粉色</option>
+          <option value="purple">紫色</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-default" onclick="closeBannerEdit()">取消</button>
+      <button class="btn-primary" onclick="saveBannerEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════
+// 时钟
+// ══════════════════════════════
+const WEEKS = ['日','一','二','三','四','五','六'];
+function updateClock() {
+  const now = new Date();
+  const p = n => String(n).padStart(2,'0');
+  document.getElementById('live-time').textContent = `${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
+  document.getElementById('live-date').textContent = `${now.getFullYear()}年${p(now.getMonth()+1)}月${p(now.getDate())}日 星期${WEEKS[now.getDay()]}`;
+}
+setInterval(updateClock, 1000); updateClock();
+
+// ══════════════════════════════
+// 数据
+// ══════════════════════════════
+const DEPT_DATA = [
+  { name:'护理学院',   total:569, done:524, color:'#EB2F96' },
+  { name:'计算机学院', total:668, done:607, color:'#1677FF' },
+  { name:'建筑学院',   total:366, done:328, color:'#FA8C16' },
+  { name:'电商学院',   total:342, done:298, color:'#52C41A' },
+  { name:'机电学院',   total:284, done:241, color:'#9254DE' },
+  { name:'其他院系',   total:221, done:205, color:'#00D4FF' }
+];
+
+// ══════════════════════════════
+// 院系排行
+// ══════════════════════════════
+function renderRankList() {
+  const sorted = [...DEPT_DATA].sort((a,b) => (b.done/b.total) - (a.done/a.total));
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('rank-list').innerHTML = sorted.map((d,i) => {
+    const pct = (d.done/d.total*100).toFixed(1);
+    return `
+    <div class="rank-row">
+      <div class="rank-no" style="background:${i<3?d.color+'22':'rgba(255,255,255,0.05)'};color:${i<3?d.color:'#5B90B8'};">${i<3?medals[i]:i+1}</div>
+      <div class="rank-name">${d.name}</div>
+      <div class="rank-bar-wrap"><div class="rank-bar-fill" style="width:${pct}%;background:linear-gradient(90deg,${d.color}88,${d.color});"></div></div>
+      <div class="rank-val">${d.done}</div>
+      <div class="rank-pct" style="color:${parseFloat(pct)>90?'#52C41A':'#FA8C16'};">${pct}%</div>
+    </div>`;
+  }).join('');
+}
+renderRankList();
+
+// ══════════════════════════════
+// ECharts：今日趋势
+// ══════════════════════════════
+function initTrendChart() {
+  const ec = echarts.init(document.getElementById('chart-trend'), null, {renderer:'canvas'});
+  const hours = Array.from({length:12},(_,i)=>`${i+7}:00`);
+  const vals  = [0,12,38,75,104,128,152,176,187,201,215,127];
+  ec.setOption({
+    grid:{top:2,bottom:14,left:2,right:6},
+    xAxis:{type:'category',data:hours,axisLabel:{color:'#3B6080',fontSize:8},axisLine:{show:false},axisTick:{show:false}},
+    yAxis:{type:'value',show:false},
+    series:[{
+      type:'bar',data:vals,
+      itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#1677FF'},{offset:1,color:'rgba(22,119,255,0.15)'}]},borderRadius:[2,2,0,0]},
+      emphasis:{itemStyle:{color:'#00D4FF'}}
+    }],
+    tooltip:{trigger:'axis',backgroundColor:'rgba(6,22,50,0.92)',borderColor:'rgba(22,119,255,0.4)',textStyle:{color:'#E8F4FF',fontSize:11},formatter:p=>`${p[0].axisValue}：<strong style="color:#00D4FF">${p[0].value}</strong> 人`}
+  });
+  window._charts = window._charts || {}; window._charts.trend = ec;
+}
+initTrendChart();
+
+// ══════════════════════════════
+// ECharts：院系分布
+// ══════════════════════════════
+function initDeptChart() {
+  const ec = echarts.init(document.getElementById('chart-dept'), null, {renderer:'canvas'});
+  const names = DEPT_DATA.map(d=>d.name.replace('学院',''));
+  const dones = DEPT_DATA.map(d=>d.done);
+  const unds  = DEPT_DATA.map(d=>d.total-d.done);
+  const colors= DEPT_DATA.map(d=>d.color);
+  ec.setOption({
+    grid:{top:26,bottom:32,left:58,right:12},
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'rgba(6,22,50,0.95)',borderColor:'rgba(22,119,255,0.4)',textStyle:{color:'#E8F4FF',fontSize:12},
+      formatter:p=>{const done=p.find(x=>x.seriesName==='已报到');const und=p.find(x=>x.seriesName==='未报到');return `${p[0].name}学院<br/>已报到：<strong style="color:#00D4FF">${done?.value||0}</strong>人<br/>未报到：<span style="color:#FA8C16">${und?.value||0}</span>人`;}},
+    legend:{top:4,right:6,itemWidth:10,itemHeight:10,textStyle:{color:'#5B90B8',fontSize:11}},
+    xAxis:{type:'value',show:false},
+    yAxis:{type:'category',data:names,axisLabel:{color:'#6B9FCC',fontSize:11},axisLine:{lineStyle:{color:'rgba(22,119,255,0.15)'}},axisTick:{show:false}},
+    series:[
+      {name:'已报到',type:'bar',stack:'total',
+        data:dones.map((v,i)=>({value:v,itemStyle:{color:{type:'linear',x:0,y:0,x2:1,y2:0,colorStops:[{offset:0,color:colors[i]+'88'},{offset:1,color:colors[i]}]}}})),
+        barMaxWidth:13,label:{show:true,position:'inside',color:'white',fontSize:9,formatter:'{c}'}},
+      {name:'未报到',type:'bar',stack:'total',
+        data:unds.map(v=>({value:v,itemStyle:{color:'rgba(255,255,255,0.04)'}})),barMaxWidth:13}
+    ]
+  });
+  window._charts.dept = ec;
+}
+initDeptChart();
+
+// ══════════════════════════════
+// ECharts：性别饼图
+// ══════════════════════════════
+function initGenderPie() {
+  const ec = echarts.init(document.getElementById('chart-gender-pie'), null, {renderer:'canvas'});
+  ec.setOption({
+    tooltip:{trigger:'item',backgroundColor:'rgba(6,22,50,0.95)',borderColor:'rgba(22,119,255,0.4)',textStyle:{color:'#E8F4FF',fontSize:12},formatter:'{b}: {c}人 ({d}%)'},
+    legend:{bottom:2,left:'center',itemWidth:10,itemHeight:10,textStyle:{color:'#6B9FCC',fontSize:11}},
+    series:[{type:'pie',radius:['44%','70%'],center:['50%','44%'],label:{show:false},
+      emphasis:{label:{show:true,fontSize:12,fontWeight:'bold',color:'#E8F4FF'}},
+      data:[
+        {value:1240,name:'男生',itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#00D4FF'},{offset:1,color:'#1677FF'}]}}},
+        {value:963,name:'女生',itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#FF85C2'},{offset:1,color:'#EB2F96'}]}}}
+      ]
+    }]
+  });
+  window._charts.gender = ec;
+}
+initGenderPie();
+
+// ══════════════════════════════
+// 地图 GeoJSON（内嵌坐标点）
+// 直接用坐标散点+飞线渲染，无需外部 GeoJSON
+// ══════════════════════════════
+
+// ── 河北省内 ──
+const HEBEI_CITIES = [
+  ['石家庄',114.48,38.03,180],['唐山',118.18,39.63,95],
+  ['廊坊',116.70,39.52,112],['张家口',114.88,40.82,68],
+  ['承德',117.96,40.97,44],['秦皇岛',119.60,39.93,58],
+  ['沧州',116.84,38.30,145],['保定',115.46,38.87,520],
+  ['邢台',114.50,37.07,88],['邯郸',114.49,36.62,76],
+  ['衡水',115.67,37.73,67],
+];
+const BAODING = [115.46, 38.87];
+
+// 用 ECharts 自定义坐标渲染，不依赖地图 GeoJSON
+function initHebeiChart() {
+  const el = document.getElementById('map-hebei');
+  const ec = echarts.init(el, null, {renderer:'canvas'});
+
+  // 坐标归一化到画布（经纬 → 像素近似）
+  // 河北经度约 113.4~119.8，纬度约 36.1~42.6
+  const lngMin=113.0, lngMax=120.2, latMin=35.8, latMax=42.8;
+  const toX = lng => ((lng - lngMin)/(lngMax - lngMin)*100).toFixed(1) + '%';
+  const toY = lat => ((latMax - lat)/(latMax - latMin)*100).toFixed(1) + '%';
+
+  const scatter = HEBEI_CITIES.map(c => ({
+    name:c[0], value:[c[1],c[2],c[3]],
+    symbolSize: c[0]==='保定' ? 20 : Math.max(6, Math.min(16, c[3]/18)),
+    itemStyle:{ color: c[0]==='保定' ? '#00D4FF' : '#1677FF',
+      shadowBlur:12, shadowColor: c[0]==='保定' ? '#00D4FF' : '#1677FF66' }
+  }));
+
+  const lines = HEBEI_CITIES.filter(c=>c[0]!=='保定').map(c=>({
+    coords:[[c[1],c[2]],BAODING]
+  }));
+
+  // 使用 ECharts graph 在笛卡尔坐标中模拟
+  // 因无 geo 注册，改用 custom + lines series
+  ec.setOption({
+    backgroundColor:'transparent',
+    tooltip:{
+      trigger:'item', show:true,
+      backgroundColor:'rgba(6,22,50,0.95)',
+      borderColor:'rgba(22,119,255,0.4)',
+      textStyle:{color:'#E8F4FF',fontSize:12},
+      formatter: p => p.name ? `${p.name}<br/>生源：<strong style="color:#00D4FF">${p.data?.value?.[2]||''}</strong> 人` : ''
+    },
+    xAxis:{ show:false, min:113.0, max:120.2 },
+    yAxis:{ show:false, min:35.8, max:42.8 },
+    series:[
+      {
+        type:'lines',
+        coordinateSystem:'cartesian2d',
+        data: HEBEI_CITIES.filter(c=>c[0]!=='保定').map(c=>({
+          coords:[[c[1],c[2]],BAODING],
+          lineStyle:{ color:c[3]>100?'#00D4FF':'#1677FF', opacity:0.55, width:c[3]>100?1.5:1 }
+        })),
+        effect:{show:true,period:4,trailLength:0.4,color:'#00D4FF',symbolSize:4},
+        lineStyle:{curveness:0.15},
+        zlevel:2
+      },
+      {
+        type:'effectScatter',
+        coordinateSystem:'cartesian2d',
+        data: HEBEI_CITIES.filter(c=>c[0]!=='保定').map(c=>({
+          name:c[0], value:[c[1],c[2],c[3]]
+        })),
+        symbolSize: d => Math.max(5, Math.min(14, d[2]/18)),
+        showEffectOn:'render',
+        rippleEffect:{brushType:'stroke',scale:2.8,period:3},
+        itemStyle:{color:'#1677FF',shadowBlur:8,shadowColor:'#1677FF88'},
+        label:{show:true,formatter:'{b}',color:'#6B9FCC',fontSize:9,position:'right'},
+        zlevel:3
+      },
+      {
+        type:'effectScatter',
+        coordinateSystem:'cartesian2d',
+        data:[{name:'保定（学校）',value:[115.46,38.87,520]}],
+        symbolSize:20,
+        showEffectOn:'render',
+        rippleEffect:{period:2,brushType:'fill',scale:4},
+        itemStyle:{color:'#00D4FF',shadowBlur:20,shadowColor:'#00D4FF'},
+        label:{show:true,formatter:'保定',color:'#00D4FF',fontSize:11,fontWeight:'bold',position:'top'},
+        zlevel:4
+      }
+    ]
+  });
+
+  // 绘制城市名标签辅助覆盖层（canvas 叠加）
+  window._charts = window._charts || {}; window._charts.hebei = ec;
+}
+initHebeiChart();
+
+// ── 全国 ──
+const NATION_DATA = [
+  ['北京',116.40,39.90,12],['天津',117.20,39.12,18],
+  ['上海',121.47,31.23,5],['山东',117.00,36.65,88],
+  ['河南',113.65,34.76,62],['山西',112.55,37.87,47],
+  ['内蒙古',111.76,40.82,32],['辽宁',123.43,41.80,24],
+  ['黑龙江',126.64,45.75,8],['吉林',125.32,43.90,11],
+  ['陕西',108.95,34.27,29],['安徽',117.28,31.86,22],
+  ['江苏',118.76,32.07,14],['浙江',120.15,30.28,8],
+  ['湖北',114.31,30.52,16],['四川',104.07,30.67,9],
+  ['广东',113.27,23.13,6],['河北',115.46,38.87,1653],
+  ['重庆',106.55,29.57,7],['湖南',113.01,28.20,12],
+  ['福建',119.30,26.08,4],['江西',115.89,28.68,6],
+];
+const BAODING_CN = [115.46, 38.87];
+
+function initChinaChart() {
+  const el = document.getElementById('map-china');
+  const ec = echarts.init(el, null, {renderer:'canvas'});
+
+  ec.setOption({
+    backgroundColor:'transparent',
+    tooltip:{
+      trigger:'item', show:true,
+      backgroundColor:'rgba(6,22,50,0.95)',
+      borderColor:'rgba(22,119,255,0.4)',
+      textStyle:{color:'#E8F4FF',fontSize:12},
+      formatter: p => p.name ? `${p.name}<br/>生源：<strong style="color:#52C41A">${p.data?.value?.[2]||''}</strong> 人` : ''
+    },
+    xAxis:{ show:false, min:73, max:135 },
+    yAxis:{ show:false, min:18, max:53 },
+    series:[
+      {
+        type:'lines',
+        coordinateSystem:'cartesian2d',
+        data: NATION_DATA.filter(c=>c[0]!=='河北').map(c=>({
+          coords:[[c[1],c[2]],BAODING_CN],
+          lineStyle:{ color:c[3]>50?'#73D13D':'#52C41A', opacity:0.5, width:c[3]>50?1.5:1 }
+        })),
+        effect:{show:true,period:5,trailLength:0.35,color:'#52C41A',symbolSize:3.5},
+        lineStyle:{curveness:0.2},
+        zlevel:2
+      },
+      {
+        type:'effectScatter',
+        coordinateSystem:'cartesian2d',
+        data: NATION_DATA.filter(c=>c[0]!=='河北').map(c=>({
+          name:c[0], value:[c[1],c[2],c[3]]
+        })),
+        symbolSize: d => Math.max(4, Math.min(12, d[2]/5)),
+        showEffectOn:'render',
+        rippleEffect:{brushType:'stroke',scale:2.5,period:3.5},
+        itemStyle:{color:'#52C41A',shadowBlur:6,shadowColor:'#52C41A88'},
+        label:{show:true,formatter:'{b}',color:'#5B90B8',fontSize:9,position:'right'},
+        zlevel:3
+      },
+      {
+        type:'effectScatter',
+        coordinateSystem:'cartesian2d',
+        data:[{name:'保定（学校）',value:[115.46,38.87,1653]}],
+        symbol:'pin',
+        symbolSize:22,
+        itemStyle:{color:'#FF4D4F',shadowBlur:18,shadowColor:'#FF4D4F'},
+        label:{show:true,formatter:'保定',color:'#fff',fontSize:10,fontWeight:'bold',position:'top',offset:[0,-24]},
+        zlevel:4
+      }
+    ]
+  });
+  window._charts = window._charts || {}; window._charts.china = ec;
+}
+initChinaChart();
+
+// ══════════════════════════════
+// 轮播数据
+// ══════════════════════════════
+const COLOR_THEMES = {
+  blue:   { bg:'linear-gradient(135deg,rgba(22,119,255,0.15),rgba(0,212,255,0.08))',  border:'rgba(22,119,255,0.3)',  accent:'#91CAFF' },
+  green:  { bg:'linear-gradient(135deg,rgba(82,196,26,0.12),rgba(22,119,255,0.06))',  border:'rgba(82,196,26,0.3)',   accent:'#73D13D' },
+  orange: { bg:'linear-gradient(135deg,rgba(250,140,22,0.12),rgba(22,119,255,0.06))', border:'rgba(250,140,22,0.3)',  accent:'#FFD666' },
+  pink:   { bg:'linear-gradient(135deg,rgba(235,47,150,0.12),rgba(22,119,255,0.06))', border:'rgba(235,47,150,0.25)', accent:'#FF85C2' },
+  purple: { bg:'linear-gradient(135deg,rgba(146,84,222,0.12),rgba(22,119,255,0.06))', border:'rgba(146,84,222,0.3)',  accent:'#B37FEB' },
+};
+
+let BANNERS = [
+  { id:'b1', type:'notice', colorKey:'blue', title:'🎉 2024级新生报到须知',
+    content:'请于2024年9月1日 08:00-18:00 携带录取通知书、身份证原件及复印件到南校区图书馆广场报到。报到前请确保已完成信息填写、在线缴费及宿舍选择。' },
+  { id:'b2', type:'stats', colorKey:'green', title:'📊 实时报到动态', content:null },
+  { id:'b3', type:'notice', colorKey:'pink', title:'🏠 宿舍选床提示',
+    content:'宿舍在线选床位已开放！登录迎新系统→选择宿舍（Step 4），系统按专业分楼层安排，每间6人，请尽早完成选床避免位置紧张。' },
+  { id:'b4', type:'notice', colorKey:'orange', title:'💳 缴费提醒',
+    content:'学费 5,000 元 + 住宿费 1,200 元 + 教材费 300 元 + 军训费 150 元，合计 6,650 元。支持张家口银行在线缴费，也可到现场财务处缴纳。如有困难请申请绿色通道。' },
+  { id:'b5', type:'notice', colorKey:'purple', title:'🚌 接站服务',
+    content:'8月31日-9月2日，保定站（中站）、保定东站（高铁站）设有免费接站点，接站时间 7:00-20:00，凭录取通知书可免费乘坐校车。' },
+];
+
+let currentSlide = 0;
+let carouselTimer = null;
+
+function renderCarousel() {
+  const container = document.getElementById('carousel-container');
+  const dotsEl    = document.getElementById('carousel-dots');
+
+  container.innerHTML = BANNERS.map((b,i) => {
+    const theme = COLOR_THEMES[b.colorKey] || COLOR_THEMES.blue;
+    let innerHTML = '';
+    if (b.type === 'stats') {
+      innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;flex:1;">
+          ${[
+            {label:'今日报到',val:'127人',color:'#00D4FF'},
+            {label:'报到率',val:'89.9%',color:'#52C41A'},
+            {label:'未报到',val:'247人',color:'#FA8C16'},
+            {label:'已缴费',val:'88.0%',color:'#1677FF'}
+          ].map(s=>`
+            <div style="text-align:center;padding:8px;background:rgba(255,255,255,0.04);border-radius:6px;border:1px solid rgba(255,255,255,0.07);">
+              <div style="font-size:20px;font-weight:800;color:${s.color};">${s.val}</div>
+              <div style="font-size:11px;color:#5B90B8;margin-top:2px;">${s.label}</div>
+            </div>`).join('')}
+        </div>`;
+    } else if (b.type === 'image' && b.imageUrl) {
+      innerHTML = `<img src="${b.imageUrl}" style="width:100%;flex:1;object-fit:cover;border-radius:5px;margin-top:8px;" onerror="this.style.display='none'" />`;
+    } else {
+      innerHTML = `<div style="font-size:13px;color:#C8DFEF;line-height:1.85;margin-top:8px;flex:1;overflow:hidden;">${b.content||''}</div>`;
+    }
+    return `
+      <div class="carousel-slide ${i===0?'active':'hidden'}" data-idx="${i}">
+        <div class="slide-content" style="background:${theme.bg};border:1px solid ${theme.border};">
+          <div style="font-size:14px;font-weight:700;color:${theme.accent};letter-spacing:1px;">${b.title}</div>
+          ${innerHTML}
+        </div>
+      </div>`;
+  }).join('');
+
+  dotsEl.innerHTML = BANNERS.map((_,i)=>`<div class="carousel-dot ${i===0?'active':''}" onclick="goToSlide(${i})"></div>`).join('');
+  currentSlide = 0;
+  startCarouselTimer();
+}
+
+function goToSlide(idx) {
+  document.querySelectorAll('.carousel-slide').forEach((s,i) => s.className='carousel-slide '+(i===idx?'active':'hidden'));
+  document.querySelectorAll('.carousel-dot').forEach((d,i) => d.className='carousel-dot'+(i===idx?' active':''));
+  currentSlide = idx;
+}
+function carouselPrev() { goToSlide((currentSlide-1+BANNERS.length)%BANNERS.length); }
+function carouselNext() { goToSlide((currentSlide+1)%BANNERS.length); }
+function startCarouselTimer() {
+  if (carouselTimer) clearInterval(carouselTimer);
+  carouselTimer = setInterval(carouselNext, 5000);
+}
+renderCarousel();
+
+// ══════════════════════════════
+// 轮播管理
+// ══════════════════════════════
+function openBannerManager() {
+  renderBannerManagerList();
+  document.getElementById('banner-modal').classList.add('open');
+}
+function closeBannerManager() {
+  document.getElementById('banner-modal').classList.remove('open');
+  renderCarousel();
+}
+
+function renderBannerManagerList() {
+  document.getElementById('banner-manager-list').innerHTML =
+    BANNERS.map((b,i) => {
+      const theme = COLOR_THEMES[b.colorKey] || COLOR_THEMES.blue;
+      return `
+      <div class="banner-item">
+        <div class="banner-item-head">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:22px;height:22px;background:rgba(22,119,255,0.2);border-radius:4px;display:flex;align-items:center;justify-content:center;color:#91CAFF;font-size:11px;font-weight:700;">${i+1}</div>
+            <span style="font-size:13px;font-weight:600;color:${theme.accent};">${b.title}</span>
+            <span style="font-size:10px;color:#3B6080;background:rgba(255,255,255,0.05);padding:1px 6px;border-radius:3px;">${{notice:'公告',stats:'数据',image:'图片'}[b.type]||b.type}</span>
+          </div>
+          <div style="display:flex;gap:5px;align-items:center;">
+            ${i>0?`<button onclick="moveBanner(${i},-1)" style="width:24px;height:24px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:#91CAFF;cursor:pointer;font-size:11px;">↑</button>`:''}
+            ${i<BANNERS.length-1?`<button onclick="moveBanner(${i},1)" style="width:24px;height:24px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:#91CAFF;cursor:pointer;font-size:11px;">↓</button>`:''}
+            <button onclick="openBannerEdit(${i})" style="padding:0 10px;height:26px;background:rgba(22,119,255,0.15);border:1px solid rgba(22,119,255,0.3);border-radius:4px;color:#91CAFF;cursor:pointer;font-size:11px;"><i class="fas fa-pen"></i></button>
+            <button class="btn-danger" onclick="deleteBanner('${b.id}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <div style="font-size:12px;color:#3B6080;line-height:1.6;">${b.content||'— 动态数据展示 —'}</div>
+      </div>`;
+    }).join('') +
+    `<button class="add-banner-btn" onclick="addBannerItem()"><i class="fas fa-plus" style="margin-right:6px;"></i>添加新轮播</button>`;
+}
+
+function moveBanner(idx, dir) {
+  const ni = idx+dir;
+  if (ni<0||ni>=BANNERS.length) return;
+  [BANNERS[idx],BANNERS[ni]] = [BANNERS[ni],BANNERS[idx]];
+  renderBannerManagerList();
+}
+
+function deleteBanner(id) {
+  if (BANNERS.length<=1) { alert('至少保留一张轮播'); return; }
+  BANNERS = BANNERS.filter(b=>b.id!==id);
+  renderBannerManagerList();
+}
+
+// ── 编辑弹窗 ──
+let _editIdx = -1;
+
+function openBannerEdit(idx) {
+  _editIdx = idx;
+  const b = BANNERS[idx];
+  document.getElementById('banner-edit-title').textContent = idx>=0 ? '编辑轮播' : '新建轮播';
+  document.getElementById('edit-banner-title').value   = b.title || '';
+  document.getElementById('edit-banner-type').value    = b.type  || 'notice';
+  document.getElementById('edit-banner-content').value = b.content || '';
+  document.getElementById('edit-banner-image').value   = b.imageUrl || '';
+  document.getElementById('edit-banner-color').value   = b.colorKey || 'blue';
+  syncEditTypeFields();
+  document.getElementById('banner-edit-modal').classList.add('open');
+}
+
+function addBannerItem() {
+  _editIdx = -1;
+  document.getElementById('banner-edit-title').textContent = '新建轮播';
+  document.getElementById('edit-banner-title').value   = '📢 ';
+  document.getElementById('edit-banner-type').value    = 'notice';
+  document.getElementById('edit-banner-content').value = '';
+  document.getElementById('edit-banner-image').value   = '';
+  document.getElementById('edit-banner-color').value   = 'blue';
+  syncEditTypeFields();
+  document.getElementById('banner-edit-modal').classList.add('open');
+}
+
+function syncEditTypeFields() {
+  const t = document.getElementById('edit-banner-type').value;
+  document.getElementById('edit-content-wrap').style.display = t==='image'  ? 'none' : 'block';
+  document.getElementById('edit-image-wrap').style.display   = t==='image'  ? 'block': 'none';
+}
+document.getElementById('edit-banner-type').addEventListener('change', syncEditTypeFields);
+
+function closeBannerEdit() {
+  document.getElementById('banner-edit-modal').classList.remove('open');
+}
+
+function saveBannerEdit() {
+  const title    = document.getElementById('edit-banner-title').value.trim();
+  const type     = document.getElementById('edit-banner-type').value;
+  const content  = document.getElementById('edit-banner-content').value.trim();
+  const imageUrl = document.getElementById('edit-banner-image').value.trim();
+  const colorKey = document.getElementById('edit-banner-color').value;
+  if (!title) { alert('标题不能为空'); return; }
+  const item = { id: _editIdx>=0 ? BANNERS[_editIdx].id : 'b'+Date.now(), type, title, content: type!=='image'?content:null, imageUrl: type==='image'?imageUrl:null, colorKey };
+  if (_editIdx >= 0) {
+    BANNERS[_editIdx] = item;
+  } else {
+    BANNERS.push(item);
+  }
+  closeBannerEdit();
+  renderBannerManagerList();
+}
+
+// ══════════════════════════════
+// 模拟实时数据刷新
+// ══════════════════════════════
+let _total = 2203, _today = 127, _missing = 247;
+function simulateLiveData() {
+  setInterval(() => {
+    if (Math.random() < 0.28) {
+      _total++; _today++; _missing = Math.max(0, _missing-1);
+      const rate = (_total/2450*100).toFixed(1);
+      ['kpi-total','kpi-today','kpi-missing'].forEach((id,idx) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = [_total.toLocaleString(), _today, _missing][idx];
+        el.classList.remove('num-animate'); void el.offsetWidth; el.classList.add('num-animate');
+      });
+      const rateEl = document.getElementById('kpi-rate');
+      if (rateEl) rateEl.textContent = rate+'%';
+    }
+  }, 4800);
+}
+simulateLiveData();
+
+// ══════════════════════════════
+// Resize
+// ══════════════════════════════
+window.addEventListener('resize', () => {
+  if (window._charts) Object.values(window._charts).forEach(c => c?.resize?.());
+});
+
+// 点击遮罩关闭弹窗
+document.querySelectorAll('.modal-mask').forEach(mask => {
+  mask.addEventListener('click', e => {
+    if (e.target === mask) {
+      mask.classList.remove('open');
+      if (mask.id === 'banner-modal') renderCarousel();
+    }
+  });
+});
+</script>
+</body>
+</html>

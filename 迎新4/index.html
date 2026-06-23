@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>迎新管理系统 · 原型预览</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            /* === B端蓝白主色系 === */
+            --primary: #1677FF;
+            --primary-hover: #4096FF;
+            --primary-light: #E6F4FF;
+            --primary-dark: #0958D9;
+            --nav-bg: #001529;
+            --nav-sub: #002140;
+            --sidebar-bg: #FFFFFF;
+            --page-bg: #F5F7FA;
+            --card-bg: #FFFFFF;
+            --border: #E5EAF3;
+            --border-light: #F0F2F5;
+
+            /* === 语义色 === */
+            --success: #52C41A;
+            --success-bg: #F6FFED;
+            --warning: #FA8C16;
+            --warning-bg: #FFF7E6;
+            --danger: #FF4D4F;
+            --danger-bg: #FFF1F0;
+            --info: #1677FF;
+            --info-bg: #E6F4FF;
+
+            /* === 文字色 === */
+            --text-primary: #1F2D3D;
+            --text-secondary: #5B6B7A;
+            --text-placeholder: #9AACBA;
+            --text-disabled: #BCC9D4;
+            --text-white: #FFFFFF;
+
+            /* === 灰度 === */
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+        }
+        body {
+            font-family: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--page-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ====== 顶部导航栏 ====== */
+        .top-nav {
+            background: var(--nav-bg);
+            height: 56px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            gap: 0;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            position: relative;
+            z-index: 100;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 260px;
+        }
+        .logo-icon {
+            width: 34px;
+            height: 34px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .nav-brand h1 {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            line-height: 1.2;
+        }
+        .nav-brand span {
+            font-size: 11px;
+            color: rgba(255,255,255,0.45);
+        }
+        .nav-tabs {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            padding-left: 24px;
+        }
+        .nav-tab {
+            height: 56px;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: rgba(255,255,255,0.65);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            position: relative;
+            white-space: nowrap;
+        }
+        .nav-tab:hover {
+            color: rgba(255,255,255,0.95);
+            background: rgba(255,255,255,0.06);
+        }
+        .nav-tab.active {
+            color: white;
+            border-bottom: 2px solid var(--primary);
+            background: rgba(22,119,255,0.12);
+        }
+        .tab-icon { font-size: 13px; }
+        .nav-right {
+            color: rgba(255,255,255,0.35);
+            font-size: 11px;
+            white-space: nowrap;
+            padding-left: 24px;
+        }
+
+        /* ====== 主体内容 ====== */
+        .main-content {
+            flex: 1;
+            display: none;
+            overflow: hidden;
+        }
+        .main-content.active { display: flex; }
+
+        /* ====== 首页 ====== */
+        .home-intro {
+            width: 100%;
+            padding: 48px 40px;
+            background: var(--page-bg);
+            min-height: calc(100vh - 56px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .home-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .home-header h2 {
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--nav-bg);
+            margin-bottom: 10px;
+        }
+        .home-header h2 span {
+            color: var(--primary);
+        }
+        .home-header p { color: var(--text-secondary); font-size: 14px; }
+        .home-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 960px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .home-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 28px 24px;
+            cursor: pointer;
+            transition: all 0.25s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .home-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 16px rgba(22,119,255,0.12);
+            transform: translateY(-2px);
+        }
+        .home-card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+        .home-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        .home-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .page-count {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-placeholder);
+            padding-top: 12px;
+            border-top: 1px solid var(--border-light);
+        }
+        .home-footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-placeholder);
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 32px;
+            max-width: 680px;
+        }
+        .home-footer b { color: var(--primary); }
+
+        /* ====== 手机预览区 ====== */
+        .preview-top-bar {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+        .preview-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .preview-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        .phone-frame-wrapper {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: auto;
+            padding: 28px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            background: var(--page-bg);
+        }
+        .phone-frame {
+            width: 375px;
+            min-width: 375px;
+            background: white;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 0 0 8px #E5EAF3, 0 0 0 9px #D1D9E0;
+            flex-shrink: 0;
+        }
+        .phone-header {
+            background: var(--primary);
+            padding: 40px 20px 14px;
+            position: relative;
+        }
+        .phone-status {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 14px;
+        }
+        .phone-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+        }
+        .phone-subtitle {
+            font-size: 12px;
+            color: rgba(255,255,255,0.75);
+            margin-top: 3px;
+        }
+        .phone-body {
+            padding: 16px;
+            background: var(--page-bg);
+            min-height: 500px;
+            max-height: 680px;
+            overflow-y: auto;
+        }
+        .phone-bottom-nav {
+            background: white;
+            border-top: 1px solid var(--border);
+            padding: 8px 0 4px;
+            display: flex;
+        }
+        .phone-bottom-nav .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            font-size: 10px;
+            color: var(--text-placeholder);
+            cursor: pointer;
+            padding: 4px 0;
+        }
+        .phone-bottom-nav .nav-item.active {
+            color: var(--primary);
+        }
+        .phone-bottom-nav .nav-item i {
+            font-size: 18px;
+        }
+        .phone-label {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* ====== PC后台预览区 ====== */
+        .pc-content {
+            min-height: calc(100vh - 56px);
+            background: var(--page-bg);
+        }
+
+        /* ====== 通用组件 ====== */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .tag-blue { background: var(--primary-light); color: var(--primary); }
+        .tag-green { background: var(--success-bg); color: var(--success); }
+        .tag-orange { background: var(--warning-bg); color: var(--warning); }
+        .tag-red { background: var(--danger-bg); color: var(--danger); }
+        .tag-gray { background: var(--gray-100); color: var(--gray-600); }
+
+        /* 按钮 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            outline: none;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+        .btn-default {
+            background: white;
+            color: var(--text-primary);
+            border-color: var(--border);
+        }
+        .btn-default:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-danger {
+            background: white;
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+        .btn-danger:hover { background: var(--danger-bg); }
+
+        /* ====== 滚动条 ====== */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <nav class="top-nav">
+        <div class="nav-brand">
+            <div class="logo-icon"><i class="fas fa-university"></i></div>
+            <div>
+                <h1>迎新管理系统</h1>
+                <span>保定职业技术学院 · 原型设计 v1.0</span>
+            </div>
+        </div>
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="switchTab('home')" data-tab="home">
+                <i class="fas fa-home tab-icon"></i>总览
+            </div>
+            <div class="nav-tab" onclick="switchTab('student')" data-tab="student">
+                <i class="fas fa-mobile-alt tab-icon"></i>学生端 App
+            </div>
+            <div class="nav-tab" onclick="switchTab('staff')" data-tab="staff">
+                <i class="fas fa-id-badge tab-icon"></i>教职工端 App
+            </div>
+            <div class="nav-tab" onclick="switchTab('admin')" data-tab="admin">
+                <i class="fas fa-desktop tab-icon"></i>PC 管理后台
+            </div>
+            <a href="dashboard.html" target="_blank" style="height:56px;padding:0 18px;display:flex;align-items:center;gap:7px;color:rgba(255,255,255,0.85);cursor:pointer;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;background:rgba(22,119,255,0.15);border-left:1px solid rgba(22,119,255,0.25);" onmouseover="this.style.background='rgba(0,212,255,0.18)'" onmouseout="this.style.background='rgba(22,119,255,0.15)'">
+                <i class="fas fa-tv" style="font-size:13px;color:#00D4FF;"></i>实时大屏
+                <span style="font-size:10px;padding:1px 5px;background:rgba(0,212,255,0.2);border:1px solid rgba(0,212,255,0.35);border-radius:3px;color:#00D4FF;letter-spacing:1px;">LIVE</span>
+            </a>
+        </div>
+        <div class="nav-right">
+            <a href="feature_comparison.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(255,255,255,0.1);border-radius:6px;color:white;text-decoration:none;font-size:12px;transition:all 0.2s;margin-right:12px;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                <i class="fas fa-chart-line"></i>功能对比分析
+            </a>
+            PRD v1.0 · HTML Prototype
+        </div>
+    </nav>
+
+    <!-- 首页 -->
+    <div id="tab-home" class="main-content active">
+        <div class="home-intro">
+            <div class="home-header">
+                <h2>迎新管理系统 · <span>高保真交互原型</span></h2>
+                <p>覆盖学生端 · 教职工端 · PC管理后台 三端核心流程，可交互预览</p>
+            </div>
+            <div class="home-cards">
+                <div class="home-card" onclick="switchTab('student')">
+                    <div class="home-card-icon" style="background: #E6F4FF;">📱</div>
+                    <h3>学生端 App</h3>
+                    <p>新生入学全流程：身份注册、七步报到、资助申请、宿舍查询、报到凭证</p>
+                    <div class="page-count">
+                        <i class="fas fa-file-alt"></i>7 个核心页面
+                        <span style="margin-left: auto;" class="tag tag-blue">移动端</span>
+                    </div>
+                </div>
+                <div class="home-card" onclick="switchTab('staff')">
+                    <div class="home-card-icon" style="background: #F6FFED;">🔧</div>
+                    <h3>教职工端 App</h3>
+                    <p>现场管理工作台：接站管理、扫码核验、宿舍分配、班级进度追踪</p>
+                    <div class="page-count">
+                        <i class="fas fa-file-alt"></i>5 个核心页面
+                        <span style="margin-left: auto;" class="tag tag-green">移动端</span>
+                    </div>
+                </div>
+                <div class="home-card" onclick="switchTab('admin')">
+                    <div class="home-card-icon" style="background: #F0F5FF;">💻</div>
+                    <h3>PC 管理后台</h3>
+                    <p>全局监控管理：数据大屏、档案管理、基础配置、分班管理、缴费监控</p>
+                    <div class="page-count">
+                        <i class="fas fa-file-alt"></i>6 个核心页面
+                        <span style="margin-left: auto;" class="tag tag-blue">桌面端</span>
+                    </div>
+                </div>
+            </div>
+            <div class="home-footer">
+                快捷键：<b>1</b> 总览 &nbsp;·&nbsp; <b>2</b> 学生端 &nbsp;·&nbsp; <b>3</b> 教职工端 &nbsp;·&nbsp; <b>4</b> PC后台
+                &nbsp;&nbsp;|&nbsp;&nbsp; 基于 <b>PRD v1.0</b> 生成 · 保定职业技术学院迎新管理系统
+            </div>
+        </div>
+    </div>
+
+    <!-- 学生端 -->
+    <div id="tab-student" class="main-content" style="flex-direction: column;">
+        <div class="preview-top-bar">
+            <div>
+                <div class="preview-title">📱 学生端 App</div>
+                <div class="preview-subtitle">新生入学报到全流程 · 七步完成报到</div>
+            </div>
+        </div>
+        <div class="phone-frame-wrapper" id="student-phones">
+            <!-- 由JS动态渲染 -->
+        </div>
+    </div>
+
+    <!-- 教职工端 -->
+    <div id="tab-staff" class="main-content" style="flex-direction: column;">
+        <div class="preview-top-bar">
+            <div>
+                <div class="preview-title">🔧 教职工端 App</div>
+                <div class="preview-subtitle">现场迎新管理工作台 · 扫码核验 · 宿舍分配</div>
+            </div>
+        </div>
+        <div class="phone-frame-wrapper" id="staff-phones">
+        </div>
+    </div>
+
+    <!-- PC管理后台 -->
+    <div id="tab-admin" class="main-content" style="flex-direction: column;">
+        <div class="pc-content" id="admin-pc-content">
+        </div>
+    </div>
+
+    <script src="js/student.js"></script>
+    <script src="js/staff.js"></script>
+    <script src="js/admin.js"></script>
+    <script>
+        function switchTab(tab) {
+            document.querySelectorAll('.main-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.querySelector('[data-tab="' + tab + '"]').classList.add('active');
+            if (tab === 'student' && typeof renderStudentPhones === 'function') {
+                renderStudentPhones();
+            }
+            if (tab === 'staff' && typeof renderStaffPhones === 'function') {
+                renderStaffPhones();
+            }
+            if (tab === 'admin' && typeof renderAdminDashboard === 'function') {
+                renderAdminDashboard();
+            }
+        }
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            const map = { '1': 'home', '2': 'student', '3': 'staff', '4': 'admin' };
+            if (map[e.key] && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                const active = document.activeElement;
+                if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+                switchTab(map[e.key]);
+            }
+        });
+    </script>
+</body>
+</html>

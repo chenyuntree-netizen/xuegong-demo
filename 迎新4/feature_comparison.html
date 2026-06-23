@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>迎新系统功能对比分析</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+        h1 {
+            font-size: 32px;
+            color: #1677FF;
+            margin-bottom: 16px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1677FF;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #5B6B7A;
+        }
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            font-size: 24px;
+            color: #1F2D3D;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #E5EAF3;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        .feature-card {
+            border: 2px solid #E5EAF3;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .feature-card:hover {
+            border-color: #1677FF;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(22,119,255,0.2);
+        }
+        .feature-card.completed {
+            background: #F6FFED;
+            border-color: #52C41A;
+        }
+        .feature-card.high {
+            background: #FFF1F0;
+            border-color: #FF4D4F;
+        }
+        .feature-card.medium {
+            background: #FFF7E6;
+            border-color: #FA8C16;
+        }
+        .feature-card.low {
+            background: #F0F9FF;
+            border-color: #1677FF;
+        }
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        .feature-card.completed .feature-icon { color: #52C41A; }
+        .feature-card.high .feature-icon { color: #FF4D4F; }
+        .feature-card.medium .feature-icon { color: #FA8C16; }
+        .feature-card.low .feature-icon { color: #1677FF; }
+        .feature-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F2D3D;
+            margin-bottom: 8px;
+        }
+        .feature-desc {
+            font-size: 13px;
+            color: #5B6B7A;
+            line-height: 1.6;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+        .badge.completed { background: #52C41A; color: white; }
+        .badge.high { background: #FF4D4F; color: white; }
+        .badge.medium { background: #FA8C16; color: white; }
+        .badge.low { background: #1677FF; color: white; }
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 32px;
+        }
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -30px;
+            top: 4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #1677FF;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #1677FF;
+        }
+        .timeline-line {
+            position: absolute;
+            left: -25px;
+            top: 20px;
+            width: 2px;
+            height: calc(100% - 20px);
+            background: #E5EAF3;
+        }
+        .timeline-content {
+            background: #F9FAFB;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .timeline-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F2D3D;
+            margin-bottom: 8px;
+        }
+        .timeline-desc {
+            font-size: 13px;
+            color: #5B6B7A;
+            line-height: 1.6;
+        }
+        @media (max-width: 1200px) {
+            .feature-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .feature-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1><i class="fas fa-chart-line"></i> 迎新管理系统功能对比分析</h1>
+            <p style="font-size: 14px; color: #5B6B7A; margin-top: 8px;">
+                基于《迎新3.xlsx》功能清单 vs 当前HTML原型 v2.1 · 分析日期：2026-04-09
+            </p>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value">13</div>
+                <div class="stat-label"><i class="fas fa-check-circle" style="color:#52C41A;"></i> 已实现功能</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#FF4D4F;">7</div>
+                <div class="stat-label"><i class="fas fa-exclamation-circle" style="color:#FF4D4F;"></i> 高优先级</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#FA8C16;">10</div>
+                <div class="stat-label"><i class="fas fa-clock" style="color:#FA8C16;"></i> 中优先级</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#1677FF;">3</div>
+                <div class="stat-label"><i class="fas fa-star" style="color:#1677FF;"></i> 低优先级</div>
+            </div>
+        </div>
+
+        <!-- 已实现功能 -->
+        <div class="section">
+            <div class="section-title"><i class="fas fa-check-circle" style="color:#52C41A;"></i> 已实现核心功能（13页）</div>
+            <div class="feature-grid">
+                <div class="feature-card completed">
+                    <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+                    <div class="feature-title">学生端 - 登录激活</div>
+                    <div class="feature-desc">考生号/身份证号登录，默认密码身份证后6位</div>
+                    <span class="badge completed">已完成</span>
+                </div>
+                <div class="feature-card completed">
+                    <div class="feature-icon"><i class="fas fa-edit"></i></div>
+                    <div class="feature-title">学生端 - 完善信息</div>
+                    <div class="feature-desc">个人信息、家庭信息、紧急联系人</div>
+                    <span class="badge completed">已完成</span>
+                </div>
+                <div class="feature-card completed">
+                    <div class="feature-icon"><i class="fas fa-credit-card"></i></div>
+                    <div class="feature-title">学生端 - 在线缴费</div>
+                    <div class="feature-desc">跳转张家口银行缴费，绿色通道申请</div>
+                    <span class="badge completed">已完成</span>
+                </div>
+                <div class="feature-card completed">
+                    <div class="feature-icon"><i class="fas fa-qrcode"></i></div>
+                    <div class="feature-title">学生端 - 报到凭证</div>
+                    <div class="feature-desc">生成SVG二维码，可截图保存</div>
+                    <span class="badge completed">已完成</span>
+                </div>
+                <div class="feature-card completed">
+                    <div class="feature-icon"><i class="fas fa-clipboard-check"></i></div>
+                    <div class="feature-title">教职工端 - 工作台</div>
+                    <div class="feature-desc">今日数据、快速入口、消息动态</div>
+                    <span class="badge completed">已完成</span>
+                </div>
+                <div class="feature-card completed">
+                    <div class="feature-icon"><i class="fas fa-camera"></i></div>
+                    <div class="feature-title">教职工端 - 扫码核验</div>
+                    <div class="feature-desc">扫描二维码，显示学号/班级/缴费状态</div>
+                    <span class="badge completed">已完成</span>
+                </div>
+                <div class="feature-card completed">
+                    <div class="feature-icon"><i class="fas fa-bus"></i></div>
+                    <div class="feature-title">教职工端 - 接站管理</div>
+                    <div class="feature-desc">接站点选择、登记表单、记录列表</div>
+                    <span class="badge completed">已完成</span>
+                </div>
+                <div class="feature-card completed">
+                    <div class="feature-icon"><i class="fas fa-user-check"></i></div>
+                    <div class="feature-title">教职工端 - 报到确认</div>
+                    <div class="feature-desc">查找学生、完成情况、确认报到</div>
+                    <span class="badge completed">已完成</span>
+                </div>
+                <div class="feature-card completed">
+                    <div class="feature-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <div class="feature-title">PC后台 - 报到总览</div>
+                    <div class="feature-desc">数据卡片、学院报到率、实时动态</div>
+                    <span class="badge completed">已完成</span>
+                </div>
+                <div class="feature-card completed">
+                    <div class="feature-icon"><i class="fas fa-folder-open"></i></div>
+                    <div class="feature-title">PC后台 - 新生档案</div>
+                    <div class="feature-desc">同步数据、EMS追踪、档案查询</div>
+                    <span class="badge completed">已完成</span>
+                </div>
+                <div class="feature-card completed">
+                    <div class="feature-icon"><i class="fas fa-cog"></i></div>
+                    <div class="feature-title">PC后台 - 基础配置</div>
+                    <div class="feature-desc">批次管理、树形专业结构、步骤配置</div>
+                    <span class="badge completed">已完成</span>
+                </div>
+                <div class="feature-card completed">
+                    <div class="feature-icon"><i class="fas fa-users"></i></div>
+                    <div class="feature-title">PC后台 - 分班管理</div>
+                    <div class="feature-desc">自动分班、规则配置、结果预览</div>
+                    <span class="badge completed">已完成</span>
+                </div>
+                <div class="feature-card completed">
+                    <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
+                    <div class="feature-title">PC后台 - 缴费监控</div>
+                    <div class="feature-desc">缴费统计、未缴费追踪、提醒功能</div>
+                    <span class="badge completed">已完成</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 高优先级功能 -->
+        <div class="section">
+            <div class="section-title"><i class="fas fa-exclamation-circle" style="color:#FF4D4F;"></i> 高优先级待补充（7项）</div>
+            <div class="feature-grid">
+                <div class="feature-card high">
+                    <div class="feature-icon"><i class="fas fa-calendar"></i></div>
+                    <div class="feature-title">年级管理模块</div>
+                    <div class="feature-desc">新增/编辑/删除年级，管理不同入学年级</div>
+                    <span class="badge high">必须实现</span>
+                </div>
+                <div class="feature-card high">
+                    <div class="feature-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <div class="feature-title">学年学期管理</div>
+                    <div class="feature-desc">管理学年学期配置，关联招生批次</div>
+                    <span class="badge high">必须实现</span>
+                </div>
+                <div class="feature-card high">
+                    <div class="feature-icon"><i class="fas fa-graduation-cap"></i></div>
+                    <div class="feature-title">专业管理模块</div>
+                    <div class="feature-desc">完整专业管理，支持Excel导入</div>
+                    <span class="badge high">必须实现</span>
+                </div>
+                <div class="feature-card high">
+                    <div class="feature-icon"><i class="fas fa-sitemap"></i></div>
+                    <div class="feature-title">部系专业关系</div>
+                    <div class="feature-desc">院系-专业多对多关系、分数线配置</div>
+                    <span class="badge high">必须实现</span>
+                </div>
+                <div class="feature-card high">
+                    <div class="feature-icon"><i class="fas fa-user-plus"></i></div>
+                    <div class="feature-title">报到管理优化</div>
+                    <div class="feature-desc">增加一卡通号、扫码/现金缴费功能</div>
+                    <span class="badge high">必须实现</span>
+                </div>
+                <div class="feature-card high">
+                    <div class="feature-icon"><i class="fas fa-user-times"></i></div>
+                    <div class="feature-title">未报到管理优化</div>
+                    <div class="feature-desc">延迟报到类型、预估时间、审核流程</div>
+                    <span class="badge high">必须实现</span>
+                </div>
+                <div class="feature-card high">
+                    <div class="feature-icon"><i class="fas fa-users-cog"></i></div>
+                    <div class="feature-title">分班管理优化</div>
+                    <div class="feature-desc">Excel导入、批量取消、调班功能</div>
+                    <span class="badge high">必须实现</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中优先级功能 -->
+        <div class="section">
+            <div class="section-title"><i class="fas fa-clock" style="color:#FA8C16;"></i> 中优先级待补充（10项）</div>
+            <div class="feature-grid">
+                <div class="feature-card medium">
+                    <div class="feature-icon"><i class="fas fa-info-circle"></i></div>
+                    <div class="feature-title">新生须知管理</div>
+                    <div class="feature-desc">发布入学注意事项，富文本编辑</div>
+                    <span class="badge medium">建议实现</span>
+                </div>
+                <div class="feature-card medium">
+                    <div class="feature-icon"><i class="fas fa-list-ol"></i></div>
+                    <div class="feature-title">迎新步骤优化</div>
+                    <div class="feature-desc">增加时间范围、备注字段</div>
+                    <span class="badge medium">建议实现</span>
+                </div>
+                <div class="feature-card medium">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="feature-title">接站信息统计</div>
+                    <div class="feature-desc">数据统计图表、可视化分析</div>
+                    <span class="badge medium">建议实现</span>
+                </div>
+                <div class="feature-card medium">
+                    <div class="feature-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <div class="feature-title">接站地点管理</div>
+                    <div class="feature-desc">管理机场、火车站等接站点</div>
+                    <span class="badge medium">建议实现</span>
+                </div>
+                <div class="feature-card medium">
+                    <div class="feature-icon"><i class="fas fa-bus-alt"></i></div>
+                    <div class="feature-title">接站信息优化</div>
+                    <div class="feature-desc">增加教师、交通方式、车次等字段</div>
+                    <span class="badge medium">建议实现</span>
+                </div>
+                <div class="feature-card medium">
+                    <div class="feature-icon"><i class="fas fa-comments"></i></div>
+                    <div class="feature-title">新生反馈管理</div>
+                    <div class="feature-desc">收集意见、回复功能、公开设置</div>
+                    <span class="badge medium">建议实现</span>
+                </div>
+                <div class="feature-card medium">
+                    <div class="feature-icon"><i class="fas fa-id-badge"></i></div>
+                    <div class="feature-title">学号管理模块</div>
+                    <div class="feature-desc">学号生成方案配置、批量生成</div>
+                    <span class="badge medium">建议实现</span>
+                </div>
+                <div class="feature-card medium">
+                    <div class="feature-icon"><i class="fas fa-pause-circle"></i></div>
+                    <div class="feature-title">保留入学资格</div>
+                    <div class="feature-desc">保留入学、复学操作管理</div>
+                    <span class="badge medium">建议实现</span>
+                </div>
+                <div class="feature-card medium">
+                    <div class="feature-icon"><i class="fas fa-id-card"></i></div>
+                    <div class="feature-title">一卡通管理</div>
+                    <div class="feature-desc">一卡通号、领取状态管理</div>
+                    <span class="badge medium">建议实现</span>
+                </div>
+                <div class="feature-card medium">
+                    <div class="feature-icon"><i class="fas fa-chart-pie"></i></div>
+                    <div class="feature-title">新生统计模块</div>
+                    <div class="feature-desc">多维度统计（性别、省份、民族等）</div>
+                    <span class="badge medium">建议实现</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 低优先级功能 -->
+        <div class="section">
+            <div class="section-title"><i class="fas fa-star" style="color:#1677FF;"></i> 低优先级待补充（3项）</div>
+            <div class="feature-grid">
+                <div class="feature-card low">
+                    <div class="feature-icon"><i class="fas fa-file-alt"></i></div>
+                    <div class="feature-title">证件遗失审核</div>
+                    <div class="feature-desc">证件补办审批流程</div>
+                    <span class="badge low">可选实现</span>
+                </div>
+                <div class="feature-card low">
+                    <div class="feature-icon"><i class="fas fa-database"></i></div>
+                    <div class="feature-title">新生数据优化</div>
+                    <div class="feature-desc">增加校区字段、信息新增功能</div>
+                    <span class="badge low">可选实现</span>
+                </div>
+                <div class="feature-card low">
+                    <div class="feature-icon"><i class="fas fa-globe-asia"></i></div>
+                    <div class="feature-title">地域分布大屏</div>
+                    <div class="feature-desc">地图展示、迁徙图、热力图</div>
+                    <span class="badge low">可选实现</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 实现时间线 -->
+        <div class="section">
+            <div class="section-title"><i class="fas fa-road"></i> 实现路线图</div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-line"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">第一阶段：核心功能补充（1-2周）</div>
+                        <div class="timeline-desc">
+                            实现7项高优先级功能：年级管理、学年学期管理、专业管理、部系专业关系、报到管理优化、未报到管理优化、分班管理优化。
+                            目标：完善系统基础数据管理和核心业务流程。
+                        </div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-line"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">第二阶段：业务功能增强（2-3周）</div>
+                        <div class="timeline-desc">
+                            实现10项中优先级功能：新生须知、接站信息统计、接站地点管理、新生反馈、学号管理、保留入学资格、一卡通管理、新生统计等。
+                            目标：增强系统业务功能，提升用户体验。
+                        </div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">第三阶段：增值功能完善（1周）</div>
+                        <div class="timeline-desc">
+                            实现3项低优先级功能：证件遗失审核、数据优化、地域分布大屏。
+                            目标：锦上添花，提供数据可视化和特殊场景支持。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <div style="text-align:center; color:white; margin-top:40px; padding:20px; font-size:13px;">
+            <p>迎新管理系统功能对比分析 · 生成时间：2026-04-09</p>
+            <p style="margin-top:8px;">详细功能对比请查看：<strong>FEATURE_COMPARISON.md</strong></p>
+        </div>
+    </div>
+</body>
+</html>
